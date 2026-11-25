@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOKA Hybrid Metaheuristic Lab: Perbandingan DMFO-DE vs SA-SCA pada Penjadwalan Tugas Cloud Computing</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', '"Inter"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            paper: {
+              bg: '#F8F7F4',
+              card: '#FFFFFF',
+              sub: '#F1EFEA',
+              border: '#DCD9D0',
+            },
+            ink: {
+              main: '#18181B',
+              muted: '#52525B',
+              subtle: '#71717A',
+            },
+            dmfo: {
+              DEFAULT: '#C2410C',
+              amber: '#B45309',
+              soft: '#FFF7ED',
+              border: '#FED7AA',
+            },
+            sasca: {
+              DEFAULT: '#1D4ED8',
+              crimson: '#BE123C',
+              soft: '#EFF6FF',
+              border: '#BFDBFE',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #F8F7F4;
+      color: #18181B;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
+
+    .editorial-card {
+      background-color: #FFFFFF;
+      border: 1px solid #DCD9D0;
+      box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
+    }
+
+    .editorial-subcard {
+      background-color: #F1EFEA;
+      border: 1px solid #DCD9D0;
+    }
+
+    .tab-active {
+      background-color: #18181B;
+      color: #FFFFFF;
+      border-color: #18181B;
+    }
+
+    .tab-inactive {
+      background-color: #FFFFFF;
+      color: #52525B;
+      border-color: #DCD9D0;
+    }
+
+    .tab-inactive:hover {
+      background-color: #F1EFEA;
+      color: #18181B;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    input[type="range"] {
+      accent-color: #18181B;
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1EFEA;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #C7C3B8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #A8A29E;
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-orange-200 selection:text-zinc-900">
+
+  <!-- ===================================================================== -->
+  <!-- EDITORIAL TECHNICAL LAB HEADER & NAVIGATION                           -->
+  <!-- ===================================================================== -->
+  <header class="bg-white border-b border-[#DCD9D0] sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        <!-- Title & Metadata -->
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-semibold uppercase tracking-wider bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#15803D]"></span>
+              KELOMPOK 13 • MATA KULIAH SOKA
+            </span>
+            <span class="text-[11px] font-mono text-[#52525B]">Swiss Scientific Paper Lab • CloudSim Plus</span>
+          </div>
+          <h1 class="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-[#18181B]">
+            SOKA Hybrid Metaheuristic Lab:
+            <span class="text-[#C2410C]">DMFO-DE</span>
+            <span class="text-[#71717A] font-semibold">vs</span>
+            <span class="text-[#1D4ED8]">SA-SCA</span>
+            <span class="block sm:inline text-sm sm:text-base lg:text-lg font-bold text-[#52525B]">
+              pada Penjadwalan Tugas Cloud Computing
+            </span>
+          </h1>
+        </div>
+
+        <!-- 3 Navigation Tabs -->
+        <nav class="flex flex-wrap sm:flex-nowrap gap-2 shrink-0" aria-label="Navigasi Utama">
+          <button id="tab-btn-1" onclick="switchTab(1)" class="tab-active flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+            <span class="font-mono text-xs opacity-75">01</span>
+            <span>Visualisasi Lintasan Agen</span>
+          </button>
+          <button id="tab-btn-2" onclick="switchTab(2)" class="tab-inactive flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+            <span class="font-mono text-xs opacity-75">02</span>
+            <span>Simulator & Uji Beban Cloud</span>
+          </button>
+          <button id="tab-btn-3" onclick="switchTab(3)" class="tab-inactive flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+            <span class="font-mono text-xs opacity-75">03</span>
+            <span>Bedah Matematis & Presentasi</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN WORKSPACE                                                        -->
+  <!-- ===================================================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: VISUALISASI LINTASAN AGEN 2D (KONTROL TERPISAH PER ALGORITMA)-->
+    <!-- =================================================================== -->
+    <section id="tab-panel-1" class="space-y-5">
+
+      <!-- Compact Global Toolbar -->
+      <div class="editorial-card rounded-xl p-4 space-y-3">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-base sm:text-lg font-extrabold text-[#18181B]">
+                Laboratorium Lintasan Agen 2D pada Kisi Diskrit VM 8×8
+              </h2>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]">
+                Klik kanvas mana saja untuk memindah Global Optimum
+              </span>
+            </div>
+            <p class="text-xs text-[#52525B] mt-0.5">
+              Setiap algoritma memiliki kontrol pemutaran dan panel hyperparameter independen di bawah kanvas masing-masing.
+            </p>
+          </div>
+
+          <!-- Global Playback, Reset & Speed Selector -->
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button id="btn-both-play" onclick="toggleBothCanvasPlay()" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-[#18181B] hover:bg-zinc-800 text-white transition flex items-center gap-1.5">
+              <span id="icon-both-play">⏸</span>
+              <span id="label-both-play">Play / Pause Keduanya</span>
+            </button>
+            <button onclick="resetBothCanvasSimulations()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] transition">
+              Reset & Acak Ulang Semua
+            </button>
+
+            <!-- Speed Segmented Control -->
+            <div class="inline-flex rounded-lg border border-[#DCD9D0] bg-[#F1EFEA] p-0.5 font-mono text-xs">
+              <button id="spd-btn-0.5" onclick="setGlobalAnimSpeed(0.5)" class="px-2.5 py-1 rounded-md text-[#52525B] hover:text-[#18181B] transition">0.5x</button>
+              <button id="spd-btn-1" onclick="setGlobalAnimSpeed(1)" class="px-2.5 py-1 rounded-md bg-white text-[#18181B] font-bold shadow-sm transition">1x</button>
+              <button id="spd-btn-2" onclick="setGlobalAnimSpeed(2)" class="px-2.5 py-1 rounded-md text-[#52525B] hover:text-[#18181B] transition">2x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Visual Layer Checkboxes -->
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2.5 border-t border-[#DCD9D0] text-xs font-medium text-[#18181B]">
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input id="chk-grid" type="checkbox" checked onchange="drawAgentCanvases()" class="w-4 h-4 rounded border-[#DCD9D0] accent-[#18181B]" />
+            <span>Grid Diskrit VM 8×8</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input id="chk-trails" type="checkbox" checked onchange="drawAgentCanvases()" class="w-4 h-4 rounded border-[#DCD9D0] accent-[#18181B]" />
+            <span>Jejak Lintasan</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input id="chk-hybrid-fx" type="checkbox" checked onchange="drawAgentCanvases()" class="w-4 h-4 rounded border-[#DCD9D0] accent-[#B45309]" />
+            <span>Vektor DE (<span class="font-mono text-[#B45309]">Amber</span>) / Lompatan SA (<span class="font-mono text-[#BE123C]">Crimson</span>)</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input id="chk-snap-grid" type="checkbox" checked onchange="drawAgentCanvases()" class="w-4 h-4 rounded border-[#DCD9D0] accent-[#C2410C]" />
+            <span>Snap Koordinat Bulat (<span class="font-mono">round(x,y)</span>)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 2-Column Side-by-Side Architecture -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+        <!-- =============================================================== -->
+        <!-- LEFT COLUMN: DMFO-DE CANVAS + INDIVIDUAL CONTROLS + SETTINGS    -->
+        <!-- =============================================================== -->
+        <div class="space-y-4">
+          <!-- Canvas Card -->
+          <div class="editorial-card rounded-xl overflow-hidden flex flex-col">
+            <!-- Header with Individual Playback Controls -->
+            <div class="px-4 py-3 bg-[#FFF7ED] border-b border-[#FED7AA] flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-[#C2410C]">
+                  DMFO-DE (Discrete MFO + Differential Evolution)
+                </h3>
+                <p class="text-[11px] text-[#52525B]">
+                  Spiral Logaritmik ke Flames + Vektor Mutasi <span class="font-mono text-[#B45309] font-semibold">DE/rand/1</span>
+                </p>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono text-xs">
+                <button id="btn-mfo-play" onclick="toggleMfoPlay()" class="px-2.5 py-1.5 rounded-md bg-[#C2410C] hover:bg-orange-800 text-white font-semibold transition">
+                  ⏸ Pause
+                </button>
+                <button onclick="stepMfoOnce()" class="px-2.5 py-1.5 rounded-md bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#FED7AA] font-semibold transition">
+                  Step (+1)
+                </button>
+                <button onclick="resetMfoSimulation()" class="px-2.5 py-1.5 rounded-md bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#FED7AA] font-semibold transition">
+                  Reset Agen
+                </button>
+              </div>
+            </div>
+
+            <!-- High-DPI Canvas -->
+            <div class="relative w-full h-80 sm:h-96 bg-[#FCFBF9] cursor-crosshair">
+              <canvas id="canvasMfoDe"></canvas>
+            </div>
+
+            <!-- Live Telemetry Strip -->
+            <div class="grid grid-cols-4 divide-x divide-[#DCD9D0] border-t border-[#DCD9D0] bg-[#F1EFEA] text-center py-2.5 px-2 font-mono">
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Iterasi</div>
+                <div id="tele-mfo-iter" class="text-xs sm:text-sm font-bold text-[#18181B]">0 / 120</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Best Fitness</div>
+                <div id="tele-mfo-fit" class="text-xs sm:text-sm font-bold text-[#C2410C]">0.000</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Flame Aktif</div>
+                <div id="tele-mfo-flames" class="text-xs sm:text-sm font-bold text-[#18181B]">24</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">DE Greedy Win</div>
+                <div id="tele-mfo-dewins" class="text-xs sm:text-sm font-bold text-[#15803D]">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dedicated DMFO-DE Settings Card (Terracotta Accent) -->
+          <div class="editorial-card rounded-xl p-4 sm:p-5 border-t-4 border-t-[#C2410C] space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#DCD9D0]">
+              <div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#C2410C]">
+                  PANEL PARAMETER INDEPENDEN • ALGORITMA 01
+                </span>
+                <h4 class="text-sm font-extrabold text-[#18181B]">Pengaturan Khusus DMFO-DE</h4>
+              </div>
+              <!-- Quick Presets -->
+              <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+                <button onclick="applyTab1MfoPreset('balanced')" class="px-2.5 py-1 rounded bg-[#FFF7ED] hover:bg-[#FED7AA] text-[#C2410C] border border-[#FED7AA] font-semibold transition">
+                  Balanced
+                </button>
+                <button onclick="applyTab1MfoPreset('de_high')" class="px-2.5 py-1 rounded bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] font-semibold transition">
+                  Eksplorasi DE Tinggi
+                </button>
+                <button onclick="applyTab1MfoPreset('tight_spiral')" class="px-2.5 py-1 rounded bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] font-semibold transition">
+                  Spiral Rapat
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- N (10-60) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Jumlah Ngengat (N)</span>
+                  <span id="lbl-t1-mfo-n" class="font-bold text-[#C2410C]">24</span>
+                </div>
+                <input id="t1-mfo-n" type="range" min="10" max="60" value="24" class="w-full cursor-pointer accent-[#C2410C]" />
+              </div>
+
+              <!-- T (50-300) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Maksimum Iterasi (T)</span>
+                  <span id="lbl-t1-mfo-t" class="font-bold text-[#C2410C]">120</span>
+                </div>
+                <input id="t1-mfo-t" type="range" min="50" max="300" step="10" value="120" class="w-full cursor-pointer accent-[#C2410C]" />
+              </div>
+
+              <!-- Spiral constant b (0.2-2.5) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Konstanta Spiral (b)</span>
+                  <span id="lbl-t1-mfo-b" class="font-bold text-[#C2410C]">1.0</span>
+                </div>
+                <input id="t1-mfo-b" type="range" min="0.2" max="2.5" step="0.1" value="1.0" class="w-full cursor-pointer accent-[#C2410C]" />
+              </div>
+
+              <!-- Mutation Scale Factor F (0.1-1.5) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Mutation Factor (F)</span>
+                  <span id="lbl-t1-mfo-f" class="font-bold text-[#B45309]">0.60</span>
+                </div>
+                <input id="t1-mfo-f" type="range" min="0.1" max="1.5" step="0.05" value="0.60" class="w-full cursor-pointer accent-[#B45309]" />
+              </div>
+
+              <!-- Crossover Rate CR (0.1-1.0) -->
+              <div class="editorial-subcard rounded-lg p-3 sm:col-span-2">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Crossover Rate (CR)</span>
+                  <span id="lbl-t1-mfo-cr" class="font-bold text-[#B45309]">0.80</span>
+                </div>
+                <input id="t1-mfo-cr" type="range" min="0.1" max="1.0" step="0.05" value="0.80" class="w-full cursor-pointer accent-[#B45309]" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- RIGHT COLUMN: SA-SCA CANVAS + INDIVIDUAL CONTROLS + SETTINGS    -->
+        <!-- =============================================================== -->
+        <div class="space-y-4">
+          <!-- Canvas Card -->
+          <div class="editorial-card rounded-xl overflow-hidden flex flex-col">
+            <!-- Header with Individual Playback Controls -->
+            <div class="px-4 py-3 bg-[#EFF6FF] border-b border-[#BFDBFE] flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-[#1D4ED8]">
+                  SA-SCA (Simulated Annealing + Sine Cosine Algorithm)
+                </h3>
+                <p class="text-[11px] text-[#52525B]">
+                  Osilasi Sin/Cos ke Target P + Penerimaan <span class="font-mono text-[#BE123C] font-semibold">Metropolis (T)</span>
+                </p>
+              </div>
+              <div class="flex items-center gap-1.5 font-mono text-xs">
+                <button id="btn-sca-play" onclick="toggleScaPlay()" class="px-2.5 py-1.5 rounded-md bg-[#1D4ED8] hover:bg-blue-800 text-white font-semibold transition">
+                  ⏸ Pause
+                </button>
+                <button onclick="stepScaOnce()" class="px-2.5 py-1.5 rounded-md bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#BFDBFE] font-semibold transition">
+                  Step (+1)
+                </button>
+                <button onclick="resetScaSimulation()" class="px-2.5 py-1.5 rounded-md bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#BFDBFE] font-semibold transition">
+                  Reset Agen
+                </button>
+              </div>
+            </div>
+
+            <!-- High-DPI Canvas (Includes Geometric Temperature Bar T) -->
+            <div class="relative w-full h-80 sm:h-96 bg-[#FCFBF9] cursor-crosshair">
+              <canvas id="canvasSaSca"></canvas>
+            </div>
+
+            <!-- Live Telemetry Strip -->
+            <div class="grid grid-cols-4 divide-x divide-[#DCD9D0] border-t border-[#DCD9D0] bg-[#F1EFEA] text-center py-2.5 px-2 font-mono">
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Iterasi</div>
+                <div id="tele-sca-iter" class="text-xs sm:text-sm font-bold text-[#18181B]">0 / 120</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Best Fitness</div>
+                <div id="tele-sca-fit" class="text-xs sm:text-sm font-bold text-[#1D4ED8]">0.000</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">Suhu SA (T)</div>
+                <div id="tele-sca-temp" class="text-xs sm:text-sm font-bold text-[#BE123C]">150.0°</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase text-[#52525B]">SA Jumps</div>
+                <div id="tele-sca-jumps" class="text-xs sm:text-sm font-bold text-[#18181B]">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dedicated SA-SCA Settings Card (Cobalt Blue Accent) -->
+          <div class="editorial-card rounded-xl p-4 sm:p-5 border-t-4 border-t-[#1D4ED8] space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#DCD9D0]">
+              <div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#1D4ED8]">
+                  PANEL PARAMETER INDEPENDEN • ALGORITMA 02
+                </span>
+                <h4 class="text-sm font-extrabold text-[#18181B]">Pengaturan Khusus SA-SCA</h4>
+              </div>
+              <!-- Quick Presets -->
+              <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+                <button onclick="applyTab1ScaPreset('balanced')" class="px-2.5 py-1 rounded bg-[#EFF6FF] hover:bg-[#BFDBFE] text-[#1D4ED8] border border-[#BFDBFE] font-semibold transition">
+                  Balanced
+                </button>
+                <button onclick="applyTab1ScaPreset('hot_t300')" class="px-2.5 py-1 rounded bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] font-semibold transition">
+                  Suhu Panas T0=300
+                </button>
+                <button onclick="applyTab1ScaPreset('slow_cool')" class="px-2.5 py-1 rounded bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] font-semibold transition">
+                  Pendinginan Lambat
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- N (10-60) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Jumlah Agen (N)</span>
+                  <span id="lbl-t1-sca-n" class="font-bold text-[#1D4ED8]">24</span>
+                </div>
+                <input id="t1-sca-n" type="range" min="10" max="60" value="24" class="w-full cursor-pointer accent-[#1D4ED8]" />
+              </div>
+
+              <!-- T (50-300) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Maksimum Iterasi (T)</span>
+                  <span id="lbl-t1-sca-t" class="font-bold text-[#1D4ED8]">120</span>
+                </div>
+                <input id="t1-sca-t" type="range" min="50" max="300" step="10" value="120" class="w-full cursor-pointer accent-[#1D4ED8]" />
+              </div>
+
+              <!-- Initial Amplitude a (0.5-4.0) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Amplitudo Awal SCA (a)</span>
+                  <span id="lbl-t1-sca-a" class="font-bold text-[#1D4ED8]">2.0</span>
+                </div>
+                <input id="t1-sca-a" type="range" min="0.5" max="4.0" step="0.1" value="2.0" class="w-full cursor-pointer accent-[#1D4ED8]" />
+              </div>
+
+              <!-- Initial Temp T0 (10-500) -->
+              <div class="editorial-subcard rounded-lg p-3">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Suhu Awal SA (T₀)</span>
+                  <span id="lbl-t1-sca-t0" class="font-bold text-[#BE123C]">150°</span>
+                </div>
+                <input id="t1-sca-t0" type="range" min="10" max="500" step="10" value="150" class="w-full cursor-pointer accent-[#BE123C]" />
+              </div>
+
+              <!-- Cooling Rate alpha (0.80-0.99) -->
+              <div class="editorial-subcard rounded-lg p-3 sm:col-span-2">
+                <div class="flex justify-between text-xs font-mono mb-1.5">
+                  <span class="text-[#52525B]">Laju Pendinginan SA (α)</span>
+                  <span id="lbl-t1-sca-alpha" class="font-bold text-[#BE123C]">0.95</span>
+                </div>
+                <input id="t1-sca-alpha" type="range" min="0.80" max="0.99" step="0.01" value="0.95" class="w-full cursor-pointer accent-[#BE123C]" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: SIMULATOR & UJI BEBAN CLOUD (3 CARD PENGATURAN TERPISAH)     -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-2" class="hidden space-y-6">
+
+      <!-- 3 SEPARATE SETTINGS CARDS BEFORE EXECUTION BUTTONS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+
+        <!-- CARD 1: LINGKUNGAN CLOUD & DATASET GOCJ -->
+        <div class="editorial-card rounded-xl p-4 sm:p-5 border-t-4 border-t-[#18181B] flex flex-col justify-between space-y-4">
+          <div class="space-y-3.5">
+            <div class="flex items-center justify-between border-b border-[#DCD9D0] pb-2.5">
+              <div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#52525B]">CARD 01 • INFRASTRUKTUR</span>
+                <h3 class="text-sm font-extrabold text-[#18181B]">Lingkungan Cloud & Dataset GoCJ</h3>
+              </div>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0] font-semibold">
+                SpaceShared
+              </span>
+            </div>
+
+            <!-- Preset Dataset -->
+            <div>
+              <label for="preset-workload" class="block text-xs font-semibold text-[#18181B] mb-1">
+                Preset Dataset Beban Kerja (GoCJ):
+              </label>
+              <select id="preset-workload" onchange="handlePresetChange()" class="w-full bg-white border border-[#DCD9D0] rounded-lg px-3 py-2 text-xs font-mono text-[#18181B] focus:outline-none focus:border-[#18181B]">
+                <option value="100" selected>GoCJ_Dataset_100 (100 Cloudlets)</option>
+                <option value="250">GoCJ_Dataset_250 (250 Cloudlets)</option>
+                <option value="500">GoCJ_Dataset_500 (500 Cloudlets)</option>
+                <option value="1000">GoCJ_Dataset_1000 (1000 Cloudlets)</option>
+              </select>
+            </div>
+
+            <!-- Upload File -->
+            <div>
+              <label class="block text-xs font-semibold text-[#18181B] mb-1">
+                Upload File <span class="font-mono text-[#C2410C]">GoCJ_Dataset_*.txt</span>:
+              </label>
+              <label class="flex items-center justify-between px-3 py-2 border border-dashed border-[#A8A29E] hover:border-[#18181B] rounded-lg cursor-pointer bg-[#F8F7F4] hover:bg-[#F1EFEA] transition text-xs">
+                <span class="font-semibold text-[#18181B]">Pilih berkas .txt...</span>
+                <span id="dataset-active-badge" class="font-mono text-[11px] text-[#52525B] truncate max-w-[150px]">100 Tugas</span>
+                <input id="gocj-file-input" type="file" accept=".txt" onchange="handleFileUpload(event)" class="hidden" />
+              </label>
+              <div class="flex items-center justify-between mt-1 text-[11px] font-mono text-[#52525B]">
+                <span id="dataset-active-name" class="truncate">Aktif: GoCJ_Dataset_100.txt</span>
+                <button id="btn-clear-upload" onclick="clearUploadedDataset()" class="hidden text-[#BE123C] hover:underline ml-2 shrink-0">Reset</button>
+              </div>
+            </div>
+
+            <!-- Host & VM Sliders -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Host (250W)</span>
+                  <span id="lbl-infra-hosts" class="font-bold text-[#18181B]">4</span>
+                </div>
+                <input id="infra-hosts" type="range" min="2" max="8" value="4" oninput="updateInfraPreview()" class="w-full cursor-pointer" />
+              </div>
+
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Jumlah VM</span>
+                  <span id="lbl-infra-vms" class="font-bold text-[#18181B]">8</span>
+                </div>
+                <input id="infra-vms" type="range" min="4" max="16" value="8" oninput="updateInfraPreview()" class="w-full cursor-pointer" />
+              </div>
+            </div>
+
+            <!-- VM Profile Selector -->
+            <div>
+              <label for="infra-vm-profile" class="block text-xs font-semibold text-[#18181B] mb-1">
+                Profil Kapasitas VM:
+              </label>
+              <select id="infra-vm-profile" onchange="updateInfraPreview()" class="w-full bg-white border border-[#DCD9D0] rounded-lg px-3 py-2 text-xs font-mono text-[#18181B] focus:outline-none focus:border-[#18181B]">
+                <option value="hetero_std" selected>Heterogen Standar CloudSim (1000–4000 MIPS)</option>
+                <option value="homo_2500">Homogen (Semua 2500 MIPS)</option>
+                <option value="high_var">High-Variance (500–6000 MIPS)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Active VM Spec Pills -->
+          <div class="editorial-subcard rounded-lg p-2.5">
+            <div class="flex justify-between text-[11px] font-mono text-[#52525B] mb-1">
+              <span>Kapasitas VM Aktif:</span>
+              <span id="lbl-total-mips" class="font-bold text-[#18181B]">21.500 MIPS</span>
+            </div>
+            <div id="vm-pills-container" class="flex flex-wrap gap-1 font-mono text-[10px]"></div>
+          </div>
+        </div>
+
+        <!-- CARD 2: PARAMETER KHUSUS DMFO-DE -->
+        <div class="editorial-card rounded-xl p-4 sm:p-5 border-t-4 border-t-[#C2410C] flex flex-col justify-between space-y-3.5">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-[#DCD9D0] pb-2.5">
+              <div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#C2410C]">CARD 02 • HYPERPARAMETER</span>
+                <h3 class="text-sm font-extrabold text-[#18181B]">Parameter Khusus DMFO-DE</h3>
+              </div>
+              <button onclick="resetTab2MfoDefaults()" class="text-[11px] font-mono text-[#C2410C] hover:underline">
+                Reset DMFO
+              </button>
+            </div>
+
+            <!-- N_dmfo (10-80) -->
+            <div class="bg-[#FFF7ED] border border-[#FED7AA] rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Populasi Ngengat (N_dmfo)</span>
+                <span id="lbl-t2-mfo-n" class="font-bold text-[#C2410C]">30</span>
+              </div>
+              <input id="t2-mfo-n" type="range" min="10" max="80" value="30" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#C2410C]" />
+            </div>
+
+            <!-- Iter_dmfo (20-300) -->
+            <div class="bg-[#FFF7ED] border border-[#FED7AA] rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Iterasi Maksimum (Iter_dmfo)</span>
+                <span id="lbl-t2-mfo-iter" class="font-bold text-[#C2410C]">100</span>
+              </div>
+              <input id="t2-mfo-iter" type="range" min="20" max="300" step="10" value="100" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#C2410C]" />
+            </div>
+
+            <!-- Spiral constant b (0.2-2.5) -->
+            <div class="editorial-subcard rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Konstanta Spiral (b)</span>
+                <span id="lbl-t2-mfo-b" class="font-bold text-[#18181B]">1.0</span>
+              </div>
+              <input id="t2-mfo-b" type="range" min="0.2" max="2.5" step="0.1" value="1.0" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#C2410C]" />
+            </div>
+
+            <!-- Mutation Factor F (0.1-1.5) & Crossover Rate CR (0.1-1.0) -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Mutasi (F)</span>
+                  <span id="lbl-t2-mfo-f" class="font-bold text-[#B45309]">0.50</span>
+                </div>
+                <input id="t2-mfo-f" type="range" min="0.1" max="1.5" step="0.05" value="0.50" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#B45309]" />
+              </div>
+
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Crossover (CR)</span>
+                  <span id="lbl-t2-mfo-cr" class="font-bold text-[#B45309]">0.80</span>
+                </div>
+                <input id="t2-mfo-cr" type="range" min="0.1" max="1.0" step="0.05" value="0.80" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#B45309]" />
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] font-mono text-[#52525B] bg-[#F8F7F4] border border-[#DCD9D0] rounded-lg px-3 py-2">
+            Operator: <span class="text-[#C2410C] font-semibold">Logarithmic Spiral</span> + <span class="text-[#B45309] font-semibold">DE/rand/1/bin</span> + Greedy Swap
+          </div>
+        </div>
+
+        <!-- CARD 3: PARAMETER KHUSUS SA-SCA -->
+        <div class="editorial-card rounded-xl p-4 sm:p-5 border-t-4 border-t-[#1D4ED8] flex flex-col justify-between space-y-3.5">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-[#DCD9D0] pb-2.5">
+              <div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#1D4ED8]">CARD 03 • HYPERPARAMETER</span>
+                <h3 class="text-sm font-extrabold text-[#18181B]">Parameter Khusus SA-SCA</h3>
+              </div>
+              <button onclick="resetTab2ScaDefaults()" class="text-[11px] font-mono text-[#1D4ED8] hover:underline">
+                Reset SA-SCA
+              </button>
+            </div>
+
+            <!-- N_sasca (10-80) -->
+            <div class="bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Populasi Agen (N_sasca)</span>
+                <span id="lbl-t2-sca-n" class="font-bold text-[#1D4ED8]">30</span>
+              </div>
+              <input id="t2-sca-n" type="range" min="10" max="80" value="30" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#1D4ED8]" />
+            </div>
+
+            <!-- Iter_sasca (20-300) -->
+            <div class="bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Iterasi Maksimum (Iter_sasca)</span>
+                <span id="lbl-t2-sca-iter" class="font-bold text-[#1D4ED8]">100</span>
+              </div>
+              <input id="t2-sca-iter" type="range" min="20" max="300" step="10" value="100" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#1D4ED8]" />
+            </div>
+
+            <!-- Amplitudo Awal a (0.5-4.0) -->
+            <div class="editorial-subcard rounded-lg p-2.5">
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span class="text-[#52525B]">Amplitudo Awal SCA (a)</span>
+                <span id="lbl-t2-sca-a" class="font-bold text-[#18181B]">2.0</span>
+              </div>
+              <input id="t2-sca-a" type="range" min="0.5" max="4.0" step="0.1" value="2.0" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#1D4ED8]" />
+            </div>
+
+            <!-- Suhu Awal T0 (10-500) & Cooling Rate alpha (0.80-0.99) -->
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Suhu Awal (T₀)</span>
+                  <span id="lbl-t2-sca-t0" class="font-bold text-[#BE123C]">100°</span>
+                </div>
+                <input id="t2-sca-t0" type="range" min="10" max="500" step="10" value="100" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#BE123C]" />
+              </div>
+
+              <div class="editorial-subcard rounded-lg p-2.5">
+                <div class="flex justify-between text-[11px] font-mono mb-1">
+                  <span class="text-[#52525B]">Cooling (α)</span>
+                  <span id="lbl-t2-sca-alpha" class="font-bold text-[#BE123C]">0.95</span>
+                </div>
+                <input id="t2-sca-alpha" type="range" min="0.80" max="0.99" step="0.01" value="0.95" oninput="syncTab2Labels()" class="w-full cursor-pointer accent-[#BE123C]" />
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] font-mono text-[#52525B] bg-[#F8F7F4] border border-[#DCD9D0] rounded-lg px-3 py-2">
+            Operator: <span class="text-[#1D4ED8] font-semibold">Sin/Cos Wave</span> + <span class="text-[#BE123C] font-semibold">Metropolis exp(-ΔE/T)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EXECUTION ACTION BAR (3 BUTTONS) -->
+      <div class="editorial-card rounded-xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2.5 flex-1">
+          <button id="btn-run-single" onclick="executeCloudBenchmark(1)" class="flex-1 sm:flex-initial py-2.5 px-5 rounded-lg text-xs sm:text-sm font-bold text-white bg-[#18181B] hover:bg-zinc-800 transition flex items-center justify-center gap-2">
+            <span>▶</span>
+            <span id="lbl-btn-single">Jalankan Simulasi Tunggal (1x Run)</span>
+          </button>
+
+          <button id="btn-run-multi" onclick="executeCloudBenchmark(5)" class="flex-1 sm:flex-initial py-2.5 px-5 rounded-lg text-xs sm:text-sm font-bold text-[#18181B] bg-[#F1EFEA] hover:bg-[#E7E4DC] border border-[#DCD9D0] transition flex items-center justify-center gap-2">
+            <span>↻</span>
+            <span id="lbl-btn-multi">Jalankan Benchmark Statistik (5x Multi-Run Rata-Rata)</span>
+          </button>
+        </div>
+
+        <button onclick="exportScheduleToCsv()" class="py-2.5 px-4 rounded-lg text-xs sm:text-sm font-mono font-semibold bg-white hover:bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0] transition flex items-center justify-center gap-1.5">
+          <span>↓</span>
+          <span>Export Hasil CSV</span>
+        </button>
+      </div>
+
+      <!-- EVALUATION RESULTS DASHBOARD -->
+      <div class="space-y-5">
+
+        <!-- Winner Summary Banner -->
+        <div id="winner-banner" class="editorial-card rounded-xl p-4 sm:p-5 border-l-4 border-l-[#C2410C]">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="run-mode-badge" class="text-[11px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#F1EFEA] text-[#18181B] border border-[#DCD9D0]">
+                  MODE: 1X SINGLE RUN
+                </span>
+                <span id="run-config-badge" class="text-[11px] font-mono text-[#52525B]">
+                  DMFO-DE (N=30, T=100) vs SA-SCA (N=30, T=100)
+                </span>
+              </div>
+              <h3 id="winner-title" class="text-base sm:text-lg font-extrabold text-[#18181B] mt-1">
+                Menjalankan simulasi awal...
+              </h3>
+              <p id="winner-desc" class="text-xs sm:text-sm text-[#52525B] mt-0.5">
+                Menghitung jadwal optimal pada infrastruktur CloudSim Plus...
+              </p>
+            </div>
+            <div class="shrink-0 bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg px-4 py-2.5 text-right">
+              <div class="text-[11px] font-mono text-[#15803D]">Efisiensi Makespan</div>
+              <div id="winner-badge-pct" class="text-lg sm:text-xl font-extrabold font-mono text-[#15803D]">+0.00%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multi-Run Statistical Table (Shown when 5x Multi-Run is executed) -->
+        <div id="multirun-panel" class="hidden editorial-card rounded-xl p-4 sm:p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-[#18181B]">
+                Rekap Statistik 5x Percobaan Stokastik (Mean ± StdDev)
+              </h3>
+              <p class="text-xs text-[#52525B]">
+                Menguji konsistensi performa rata-rata di luar variasi inisialisasi populasi acak
+              </p>
+            </div>
+            <span class="text-xs font-mono px-2.5 py-1 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0] font-semibold">
+              5 Independent Runs
+            </span>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-[#DCD9D0]">
+            <table class="w-full text-left border-collapse text-xs font-mono">
+              <thead class="bg-[#F1EFEA] text-[#18181B] border-b border-[#DCD9D0]">
+                <tr>
+                  <th class="py-2.5 px-3">Metrik Evaluasi</th>
+                  <th class="py-2.5 px-3 text-[#C2410C]">DMFO-DE (Mean ± SD)</th>
+                  <th class="py-2.5 px-3 text-[#C2410C]">Best DMFO-DE</th>
+                  <th class="py-2.5 px-3 text-[#1D4ED8]">SA-SCA (Mean ± SD)</th>
+                  <th class="py-2.5 px-3 text-[#1D4ED8]">Best SA-SCA</th>
+                </tr>
+              </thead>
+              <tbody id="multirun-tbody" class="divide-y divide-[#DCD9D0] bg-white text-[#18181B]"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4 KPI Comparison Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- KPI 1: Makespan -->
+          <div class="editorial-card rounded-xl p-4">
+            <div class="flex items-center justify-between gap-1 mb-2.5">
+              <span class="text-[11px] font-bold text-[#18181B] uppercase tracking-wider">1. Makespan</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]">↓ min</span>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-[#FFF7ED] px-3 py-2 rounded-lg border border-[#FED7AA] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#C2410C]">DMFO-DE</span>
+                <span id="kpi-makespan-mfo" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+              <div class="bg-[#EFF6FF] px-3 py-2 rounded-lg border border-[#BFDBFE] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#1D4ED8]">SA-SCA</span>
+                <span id="kpi-makespan-sca" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 2: Resource Utilization -->
+          <div class="editorial-card rounded-xl p-4">
+            <div class="flex items-center justify-between gap-1 mb-2.5">
+              <span class="text-[11px] font-bold text-[#18181B] uppercase tracking-wider">2. Utilization</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]">↑ max</span>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-[#FFF7ED] px-3 py-2 rounded-lg border border-[#FED7AA] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#C2410C]">DMFO-DE</span>
+                <span id="kpi-util-mfo" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+              <div class="bg-[#EFF6FF] px-3 py-2 rounded-lg border border-[#BFDBFE] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#1D4ED8]">SA-SCA</span>
+                <span id="kpi-util-sca" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 3: Load Balancing (StdDev) -->
+          <div class="editorial-card rounded-xl p-4">
+            <div class="flex items-center justify-between gap-1 mb-2.5">
+              <span class="text-[11px] font-bold text-[#18181B] uppercase tracking-wider">3. Load StdDev</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]">↓ min</span>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-[#FFF7ED] px-3 py-2 rounded-lg border border-[#FED7AA] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#C2410C]">DMFO-DE</span>
+                <span id="kpi-std-mfo" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+              <div class="bg-[#EFF6FF] px-3 py-2 rounded-lg border border-[#BFDBFE] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#1D4ED8]">SA-SCA</span>
+                <span id="kpi-std-sca" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 4: Energy Consumption (kWh) -->
+          <div class="editorial-card rounded-xl p-4">
+            <div class="flex items-center justify-between gap-1 mb-2.5">
+              <span class="text-[11px] font-bold text-[#18181B] uppercase tracking-wider">4. Energi (kWh)</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]">↓ min</span>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-[#FFF7ED] px-3 py-2 rounded-lg border border-[#FED7AA] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#C2410C]">DMFO-DE</span>
+                <span id="kpi-energy-mfo" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+              <div class="bg-[#EFF6FF] px-3 py-2 rounded-lg border border-[#BFDBFE] flex items-center justify-between">
+                <span class="text-[11px] font-mono font-semibold text-[#1D4ED8]">SA-SCA</span>
+                <span id="kpi-energy-sca" class="text-sm sm:text-base font-extrabold font-mono text-[#18181B]">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Charts Side-by-Side -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Chart 1: Convergence Curve -->
+          <div class="editorial-card rounded-xl p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-[#18181B]">
+                  Kurva Konvergensi (<span class="font-mono">Best Makespan</span>)
+                </h3>
+                <p class="text-xs text-[#52525B]">Mendukung perbandingan jumlah iterasi berbeda antar algoritma</p>
+              </div>
+              <div class="flex items-center gap-3 text-xs font-mono font-semibold">
+                <span class="flex items-center gap-1.5 text-[#C2410C]"><span class="w-3 h-1 rounded bg-[#C2410C] inline-block"></span>DMFO-DE</span>
+                <span class="flex items-center gap-1.5 text-[#1D4ED8]"><span class="w-3 h-1 rounded bg-[#1D4ED8] inline-block"></span>SA-SCA</span>
+              </div>
+            </div>
+            <div class="relative w-full h-64 sm:h-72 bg-[#FCFBF9] rounded-lg border border-[#DCD9D0] overflow-hidden">
+              <canvas id="chartConvergence"></canvas>
+              <div id="tooltip-convergence" class="hidden pointer-events-none absolute z-10 bg-white border border-[#DCD9D0] rounded-lg px-3 py-2 text-xs font-mono shadow-md text-[#18181B]"></div>
+            </div>
+          </div>
+
+          <!-- Chart 2: VM Load Distribution -->
+          <div class="editorial-card rounded-xl p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-[#18181B]">
+                  Distribusi Beban Eksekusi per VM
+                </h3>
+                <p class="text-xs text-[#52525B]">Durasi komputasi (detik) tiap mesin virtual dari jadwal terbaik</p>
+              </div>
+              <div class="flex items-center gap-3 text-xs font-mono font-semibold">
+                <span class="flex items-center gap-1.5 text-[#C2410C]"><span class="w-2.5 h-2.5 rounded-sm bg-[#C2410C] inline-block"></span>DMFO-DE</span>
+                <span class="flex items-center gap-1.5 text-[#1D4ED8]"><span class="w-2.5 h-2.5 rounded-sm bg-[#1D4ED8] inline-block"></span>SA-SCA</span>
+              </div>
+            </div>
+            <div class="relative w-full h-64 sm:h-72 bg-[#FCFBF9] rounded-lg border border-[#DCD9D0] overflow-hidden">
+              <canvas id="chartVmLoad"></canvas>
+              <div id="tooltip-vmload" class="hidden pointer-events-none absolute z-10 bg-white border border-[#DCD9D0] rounded-lg px-3 py-2 text-xs font-mono shadow-md text-[#18181B]"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cloudlet Assignment Table + Filter + Pagination -->
+        <div class="editorial-card rounded-xl p-4 sm:p-5 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-sm sm:text-base font-extrabold text-[#18181B]">
+                Tabel Alokasi Tugas (<span class="font-mono">Cloudlet-to-VM Binding</span>)
+              </h3>
+              <p class="text-xs text-[#52525B]">Pemetaan setiap Cloudlet ke indeks VM diskrit oleh jadwal terbaik masing-masing algoritma</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="table-search" type="text" oninput="resetTablePageAndFilter()" placeholder="Cari ID / VM (mis. VM 5)..." class="bg-white border border-[#DCD9D0] rounded-lg px-3 py-1.5 text-xs font-mono text-[#18181B] placeholder-[#71717A] focus:outline-none focus:border-[#18181B] w-48 sm:w-56" />
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-[#DCD9D0]">
+            <table class="w-full text-left border-collapse text-xs font-mono">
+              <thead class="bg-[#F1EFEA] text-[#18181B] border-b border-[#DCD9D0]">
+                <tr>
+                  <th class="py-2.5 px-3">Cloudlet ID</th>
+                  <th class="py-2.5 px-3">Length (MI)</th>
+                  <th class="py-2.5 px-3 text-[#C2410C]">VM DMFO-DE</th>
+                  <th class="py-2.5 px-3 text-[#C2410C]">Exec DMFO-DE</th>
+                  <th class="py-2.5 px-3 text-[#1D4ED8]">VM SA-SCA</th>
+                  <th class="py-2.5 px-3 text-[#1D4ED8]">Exec SA-SCA</th>
+                </tr>
+              </thead>
+              <tbody id="assignment-table-body" class="divide-y divide-[#DCD9D0] bg-white text-[#18181B]"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#52525B] pt-1">
+            <span id="table-page-info">Menampilkan 1–25 dari 100 Cloudlets</span>
+            <div class="flex items-center gap-1.5">
+              <button id="btn-prev-page" onclick="changeTablePage(-1)" class="px-2.5 py-1 rounded border border-[#DCD9D0] bg-white hover:bg-[#F1EFEA] disabled:opacity-40">
+                ← Prev
+              </button>
+              <button id="btn-next-page" onclick="changeTablePage(1)" class="px-2.5 py-1 rounded border border-[#DCD9D0] bg-white hover:bg-[#F1EFEA] disabled:opacity-40">
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: BEDAH MATEMATIS & PANDUAN PRESENTASI                         -->
+    <!-- =================================================================== -->
+    <section id="tab-panel-3" class="hidden space-y-6">
+
+      <!-- Overview Section -->
+      <div class="editorial-card rounded-xl p-5 sm:p-6">
+        <div class="text-xs font-mono font-bold uppercase tracking-wider text-[#52525B] mb-1">
+          LANDASAN TEORETIS HIBRIDISASI METAHEURISTIK
+        </div>
+        <h2 class="text-lg sm:text-xl font-extrabold text-[#18181B]">
+          Mengapa Menggabungkan Dua Metaheuristik untuk Cloud Task Scheduling?
+        </h2>
+        <p class="text-xs sm:text-sm text-[#52525B] mt-2 leading-relaxed">
+          Pada penjadwalan tugas komputasi awan heterogen dengan $D$ tugas dan $M$ mesin virtual, ruang solusi kombinatorial berukuran $M^D$ (untuk 100 tugas dan 8 VM terdapat $8^{100}$ kemungkinan jadwal). Algoritma metaheuristik tunggal sering mengalami ketimpangan antara <strong class="text-[#18181B]">eksplorasi global</strong> (mencari kombinasi jadwal baru) dan <strong class="text-[#18181B]">eksploitasi lokal</strong> (menyempurnakan distribusi beban VM yang sudah terbentuk).
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div class="bg-[#FFF7ED] border border-[#FED7AA] rounded-lg p-4">
+            <h3 class="text-sm font-extrabold text-[#C2410C] mb-1.5">
+              1. Mengatasi Stagnasi MFO dengan Differential Evolution (DMFO-DE)
+            </h3>
+            <p class="text-xs text-[#18181B] leading-relaxed">
+              Pada MFO kanonik, penyusutan jumlah <em>flame</em> secara linear hingga tersisa 1 target di akhir iterasi mempercepat konvergensi tetapi berisiko menghilangkan keragaman populasi (<em>loss of diversity</em>). Penambahan operator mutasi <span class="font-mono font-semibold text-[#B45309]">DE/rand/1</span> dan <em>Binomial Crossover</em> menyuntikkan variasi vektor selisih antar-agen yang hanya diterima melalui <em>Greedy Selection</em> apabila menurunkan <em>makespan</em>.
+            </p>
+          </div>
+
+          <div class="bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg p-4">
+            <h3 class="text-sm font-extrabold text-[#1D4ED8] mb-1.5">
+              2. Mengatasi Konvergensi Prematur SCA dengan Simulated Annealing (SA-SCA)
+            </h3>
+            <p class="text-xs text-[#18181B] leading-relaxed">
+              Pada SCA kanonik, pembaruan seluruh dimensi secara serentak tanpa memori individu membuat agen rentan terjebak di optimum lokal saat amplitudo $r_1$ mengecil. Penggabungan dengan <span class="font-mono font-semibold text-[#BE123C]">Simulated Annealing (SA)</span> menambahkan kriteria penerimaan probabilistik <strong>Metropolis</strong> ($e^{-\Delta E / T}$): agen diizinkan melompat keluar dari lembah optimum lokal pada suhu tinggi, lalu melakukan pencarian lokal halus saat suhu mendingin.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mathematical Formulations Side-by-Side -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- DMFO-DE Formulas -->
+        <div class="editorial-card rounded-xl p-5 sm:p-6 border-t-4 border-t-[#C2410C] space-y-4">
+          <div>
+            <div class="text-xs font-mono font-bold text-[#C2410C]">FORMULASI MATEMATIS 01</div>
+            <h3 class="text-lg font-extrabold text-[#18181B]">DMFO-DE (Discrete MFO + Differential Evolution)</h3>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#18181B] mb-1">A. Lintasan Spiral Logaritmik & Pengurangan Flame Adaptif</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                S(M_i, F_j) = D_i · e^(b·r) · cos(2πr) + F_j<br/>
+                flameNo = round(N - t · ((N - 1) / T))
+              </div>
+              <p class="text-[#52525B] mt-1.5">
+                $D_i = |F_j - M_i|$ adalah jarak ngengat ke-$i$ terhadap target api $F_j$, $b$ konstanta bentuk spiral, dan $r \in [a, 1]$ ($a$ turun linear $-1 \to -2$).
+              </p>
+            </div>
+
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#B45309] mb-1">B. Mutasi DE/rand/1 & Crossover Binomial</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                V_i = F_r1 + F · (M_r2 - M_r3)<br/>
+                U_{i,d} = V_{i,d}  jika (rand ≤ CR atau d == j_rand), else S_{i,d}
+              </div>
+              <p class="text-[#52525B] mt-1.5">
+                Faktor mutasi $F \in [0.1, 1.5]$ mengatur skala vektor selisih dari tiga agen acak berbeda ($r_1 \neq r_2 \neq r_3 \neq i$).
+              </p>
+            </div>
+
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#15803D] mb-1">C. Diskritisasi Round-Clamp & Greedy Selection</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                VM_idx = min(max(round(U_{i,d}), 0), M - 1)<br/>
+                M_i^(t+1) = argmin { Makespan(M_i^t), Makespan(S_i), Makespan(U_i) }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SA-SCA Formulas -->
+        <div class="editorial-card rounded-xl p-5 sm:p-6 border-t-4 border-t-[#1D4ED8] space-y-4">
+          <div>
+            <div class="text-xs font-mono font-bold text-[#1D4ED8]">FORMULASI MATEMATIS 02</div>
+            <h3 class="text-lg font-extrabold text-[#18181B]">SA-SCA (Simulated Annealing + Sine Cosine Algorithm)</h3>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#18181B] mb-1">A. Pembaruan Gelombang Trigonometri SCA</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                X_cand = X_i + r1 · sin(r2) · |r3·P - X_i|   (jika r4 &lt; 0.5)<br/>
+                X_cand = X_i + r1 · cos(r2) · |r3·P - X_i|   (jika r4 ≥ 0.5)
+              </div>
+              <p class="text-[#52525B] mt-1.5">
+                Parameter $r_1 = a - t(a/T)$ mengecil linear dari $a \to 0$ untuk menggeser fase pencarian dari eksplorasi luas menuju eksploitasi lokal di sekitar $P$.
+              </p>
+            </div>
+
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#BE123C] mb-1">B. Kriteria Penerimaan Probabilistik Metropolis</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                ΔE = Makespan(X_cand) - Makespan(X_i)<br/>
+                P_accept = 1  jika ΔE ≤ 0,  else exp(-ΔE / T)
+              </div>
+              <p class="text-[#52525B] mt-1.5">
+                Solusi dengan beban lebih tinggi ($\Delta E > 0$) tetap berpeluang diterima jika bilangan acak $u &lt; e^{-\Delta E / T}$ guna meloloskan agen dari optimum lokal.
+              </p>
+            </div>
+
+            <div class="editorial-subcard rounded-lg p-3.5">
+              <div class="font-bold text-[#15803D] mb-1">C. Jadwal Pendinginan Geometris (Geometric Cooling)</div>
+              <div class="font-mono text-[#18181B] bg-white border border-[#DCD9D0] p-2.5 rounded overflow-x-auto">
+                T_(t+1) = α · T_t    (dengan 0.80 ≤ α ≤ 0.99)
+              </div>
+              <p class="text-[#52525B] mt-1.5">
+                Penurunan suhu eksponensial secara bertahap mengunci pencarian pada fase akhir agar jadwal optimal tidak terganggu kembali.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Architecture Comparison Matrix & Q&A -->
+      <div class="editorial-card rounded-xl p-5 sm:p-6 space-y-5">
+        <h3 class="text-base sm:text-lg font-extrabold text-[#18181B]">
+          Matriks Perbandingan Arsitektur & Panduan Tanya Jawab (Q&A)
+        </h3>
+
+        <div class="overflow-x-auto rounded-lg border border-[#DCD9D0]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-[#F1EFEA] text-[#18181B] font-mono border-b border-[#DCD9D0]">
+              <tr>
+                <th class="py-3 px-4">Dimensi Analisis</th>
+                <th class="py-3 px-4 text-[#C2410C]">DMFO-DE</th>
+                <th class="py-3 px-4 text-[#1D4ED8]">SA-SCA</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#DCD9D0] bg-white text-[#18181B]">
+              <tr>
+                <td class="py-3 px-4 font-bold">Mekanisme Eksplorasi</td>
+                <td class="py-3 px-4">Spiral logaritmik lebar + rekombinasi vektor selisih acak (<span class="font-mono text-[#B45309]">DE/rand/1</span>).</td>
+                <td class="py-3 px-4">Gelombang $\sin/\cos$ saat $r_1 > 1$ + lompatan <em>uphill</em> Metropolis saat suhu $T$ tinggi.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold">Mekanisme Eksploitasi</td>
+                <td class="py-3 px-4">Arsip elitisme <em>Flames</em> terurut + seleksi <em>greedy</em> ketat + <em>discrete swap</em> antar-VM.</td>
+                <td class="py-3 px-4">Osilasi menyempit saat $r_1 \to 0$ + pendinginan suhu $T \to 0$ + penyempurnaan tetangga lokal.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold">Stabilitas Konvergensi</td>
+                <td class="py-3 px-4">Monoton turun sangat stabil karena solusi terbaik selalu dipertahankan dalam arsip <em>Flames</em>.</td>
+                <td class="py-3 px-4">Eksploratif di paruh awal iterasi akibat penerimaan Metropolis, lalu konvergen saat $T$ rendah.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold">Model Daya Energi</td>
+                <td class="py-3 px-4 font-mono" colspan="2">Linear Host Power Model: P_idle = 60% P_max (150W), P_max = 250W/Host → E = (Hosts × P_avg × Makespan) / 3.600.000 kWh</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Presentation Q&A Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="editorial-subcard rounded-lg p-4">
+            <div class="text-[11px] font-mono font-bold text-[#C2410C] mb-1">ANTISIPASI PERTANYAAN 01</div>
+            <h4 class="text-sm font-bold text-[#18181B]">
+              "Mengapa DMFO-DE lebih tahan terhadap stagnasi dibanding MFO standar pada beban GoCJ besar?"
+            </h4>
+            <p class="text-xs text-[#52525B] mt-1.5 leading-relaxed">
+              Ketika jumlah tugas mencapai 500 hingga 1.000 Cloudlets, penyusutan jumlah <em>flame</em> di MFO standar membuat seluruh ngengat terlalu cepat berkumpul ke satu konfigurasi VM yang belum tentu seimbang. Mutasi <span class="font-mono">DE/rand/1</span> dan <em>crossover</em> menyuntikkan kombinasi indeks VM baru dari selisih dua ngengat lain yang hanya diterima bila memangkas <em>makespan</em>.
+            </p>
+          </div>
+
+          <div class="editorial-subcard rounded-lg p-4">
+            <div class="text-[11px] font-mono font-bold text-[#1D4ED8] mb-1">ANTISIPASI PERTANYAAN 02</div>
+            <h4 class="text-sm font-bold text-[#18181B]">
+              "Apa peran suhu awal (T₀) dan cooling rate (α) pada SA-SCA dalam eksperimen ini?"
+            </h4>
+            <p class="text-xs text-[#52525B] mt-1.5 leading-relaxed">
+              Suhu awal $T_0$ menentukan seberapa berani agen SCA menerima jadwal yang sedikit lebih lambat di awal pencarian agar tidak terjebak di optimum lokal, sedangkan laju pendinginan $\alpha$ mengatur kecepatan transisi menuju fase eksploitasi. Jika $\alpha$ terlalu kecil (mis. 0.80), suhu turun terlalu cepat dan perilaku SA-SCA kembali menyerupai SCA biasa.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Editorial Footer -->
+  <footer class="border-t border-[#DCD9D0] bg-white mt-12 py-5 text-center text-xs text-[#52525B] font-mono">
+    Kelompok 13 SOKA • SOKA Hybrid Metaheuristic Lab: Perbandingan DMFO-DE vs SA-SCA pada Penjadwalan Tugas Cloud Computing
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT ENGINE: INDEPENDENT 2D LABS, CLOUDSIM BENCHMARK & CHARTS   -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. TAB NAVIGATION
+    // =========================================================================
+    let activeTab = 1;
+
+    function switchTab(tabNum) {
+      activeTab = tabNum;
+      for (let i = 1; i <= 3; i++) {
+        const panel = document.getElementById(`tab-panel-${i}`);
+        const btn = document.getElementById(`tab-btn-${i}`);
+        if (i === tabNum) {
+          panel.classList.remove('hidden');
+          btn.classList.remove('tab-inactive');
+          btn.classList.add('tab-active');
+        } else {
+          panel.classList.add('hidden');
+          btn.classList.remove('tab-active');
+          btn.classList.add('tab-inactive');
+        }
+      }
+
+      if (tabNum === 1) {
+        drawAgentCanvases();
+      } else if (tabNum === 2) {
+        renderBenchmarkCharts();
+      }
+    }
+
+    // =========================================================================
+    // 2. TAB 1: INDEPENDENT 2D AGENT TRAJECTORY LABS (DMFO-DE & SA-SCA)
+    // =========================================================================
+    const lab2D = {
+      animSpeed: 1, // 0.5x, 1x, 2x
+      globalOpt: { x: 4.0, y: 4.0 },
+      localTraps: [
+        { x: 1.5, y: 2.0, strength: 1.4 },
+        { x: 5.8, y: 1.8, strength: 1.3 }
+      ],
+
+      // Independent State for DMFO-DE
+      mfo: {
+        playing: true,
+        iter: 0,
+        maxIter: 120,
+        subProgress: 0,
+        N: 24,
+        b: 1.0,
+        F: 0.60,
+        CR: 0.80,
+        moths: [],
+        flames: [],
+        deVectors: [],
+        deGreedyWins: 0
+      },
+
+      // Independent State for SA-SCA
+      sca: {
+        playing: true,
+        iter: 0,
+        maxIter: 120,
+        subProgress: 0,
+        N: 24,
+        a: 2.0,
+        T0: 150,
+        alpha: 0.95,
+        temp: 150,
+        r1: 2.0,
+        agents: [],
+        best: { x: 3.5, y: 3.5, fitness: Infinity },
+        jumps: 0,
+        jumpArcs: []
+      }
+    };
+
+    function clampGrid(val) {
+      return Math.max(0.0, Math.min(7.0, val));
+    }
+
+    function evalGridFitness(x, y) {
+      const dx = x - lab2D.globalOpt.x;
+      const dy = y - lab2D.globalOpt.y;
+      const distGlobal = Math.sqrt(dx * dx + dy * dy);
+
+      let trapEffect = 0;
+      for (const tr of lab2D.localTraps) {
+        const tdx = x - tr.x;
+        const tdy = y - tr.y;
+        const dTrap = Math.sqrt(tdx * tdx + tdy * tdy);
+        trapEffect += tr.strength * Math.exp(-(dTrap * dTrap) / 1.1);
+      }
+      return Math.max(0, distGlobal - trapEffect * 0.42);
+    }
+
+    // --- Independent Reset for DMFO-DE ---
+    function resetMfoSimulation() {
+      const st = lab2D.mfo;
+      st.iter = 0;
+      st.subProgress = 0;
+      st.deVectors = [];
+      st.deGreedyWins = 0;
+      st.moths = [];
+
+      for (let i = 0; i < st.N; i++) {
+        const angle = (i / st.N) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        const radius = 2.3 + Math.random() * 1.2;
+        const ix = clampGrid(3.5 + Math.cos(angle) * radius);
+        const iy = clampGrid(3.5 + Math.sin(angle) * radius);
+        const fit = evalGridFitness(ix, iy);
+
+        st.moths.push({
+          prevX: ix,
+          prevY: iy,
+          x: ix,
+          y: iy,
+          fitness: fit,
+          trail: [{ x: ix, y: iy }]
+        });
+      }
+
+      st.flames = st.moths
+        .map(m => ({ x: m.x, y: m.y, fitness: m.fitness }))
+        .sort((a, b) => a.fitness - b.fitness);
+
+      updateMfoTelemetry();
+      drawMfoCanvas();
+    }
+
+    // --- Independent Reset for SA-SCA ---
+    function resetScaSimulation() {
+      const st = lab2D.sca;
+      st.iter = 0;
+      st.subProgress = 0;
+      st.temp = st.T0;
+      st.r1 = st.a;
+      st.jumps = 0;
+      st.jumpArcs = [];
+      st.agents = [];
+      st.best = { x: 3.5, y: 3.5, fitness: Infinity };
+
+      for (let i = 0; i < st.N; i++) {
+        const angle = (i / st.N) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        const radius = 2.3 + Math.random() * 1.2;
+        const ix = clampGrid(3.5 + Math.cos(angle) * radius);
+        const iy = clampGrid(3.5 + Math.sin(angle) * radius);
+        const fit = evalGridFitness(ix, iy);
+
+        st.agents.push({
+          prevX: ix,
+          prevY: iy,
+          x: ix,
+          y: iy,
+          fitness: fit,
+          trail: [{ x: ix, y: iy }]
+        });
+
+        if (fit < st.best.fitness) {
+          st.best = { x: ix, y: iy, fitness: fit };
+        }
+      }
+
+      updateScaTelemetry();
+      drawScaCanvas();
+    }
+
+    function resetBothCanvasSimulations() {
+      resetMfoSimulation();
+      resetScaSimulation();
+    }
+
+    // --- Advance 1 Iteration of DMFO-DE ---
+    function advanceMfoIteration() {
+      const st = lab2D.mfo;
+      if (st.iter >= st.maxIter) {
+        resetMfoSimulation();
+        return;
+      }
+
+      st.iter++;
+      const t = st.iter;
+      const T = st.maxIter;
+
+      const merged = [
+        ...st.moths.map(m => ({ x: m.x, y: m.y, fitness: m.fitness })),
+        ...st.flames
+      ].sort((a, b) => a.fitness - b.fitness);
+      st.flames = merged.slice(0, st.N);
+
+      const flameNo = Math.max(1, Math.round(st.N - t * ((st.N - 1) / T)));
+      const aMfo = -1.0 + t * (-1.0 / T);
+      st.deVectors = [];
+
+      for (let i = 0; i < st.N; i++) {
+        const moth = st.moths[i];
+        moth.prevX = moth.x;
+        moth.prevY = moth.y;
+
+        const targetFlame = st.flames[Math.min(i, flameNo - 1)];
+        const dx = targetFlame.x - moth.x;
+        const dy = targetFlame.y - moth.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const effDist = Math.max(dist, 0.16 * (1 - t / T));
+        const baseAngle = Math.atan2(dy, dx);
+        const r = (aMfo - 1.0) * Math.random() + 1.0;
+
+        // Spiral shape controlled by slider constant b
+        const spiralAngle = baseAngle + 2.0 * Math.PI * r * 0.45;
+        const spiralRadius = effDist * Math.exp(st.b * 0.65 * r);
+
+        const sx = clampGrid(targetFlame.x - spiralRadius * Math.cos(spiralAngle));
+        const sy = clampGrid(targetFlame.y - spiralRadius * Math.sin(spiralAngle));
+
+        // Differential Evolution DE/rand/1/bin
+        let r1 = Math.floor(Math.random() * st.N);
+        while (r1 === i && st.N > 1) r1 = Math.floor(Math.random() * st.N);
+        let r2 = Math.floor(Math.random() * st.N);
+        while ((r2 === i || r2 === r1) && st.N > 2) r2 = Math.floor(Math.random() * st.N);
+        let r3 = Math.floor(Math.random() * st.N);
+        while ((r3 === i || r3 === r1 || r3 === r2) && st.N > 3) r3 = Math.floor(Math.random() * st.N);
+
+        const spread = Math.hypot(st.moths[r2].x - st.moths[r3].x, st.moths[r2].y - st.moths[r3].y);
+        const jitterX = spread < 0.15 ? (Math.random() - 0.5) * 0.45 * (1 - t / T) : 0;
+        const jitterY = spread < 0.15 ? (Math.random() - 0.5) * 0.45 * (1 - t / T) : 0;
+
+        const vx = clampGrid(st.flames[r1].x + st.F * (st.moths[r2].x - st.moths[r3].x) + jitterX);
+        const vy = clampGrid(st.flames[r1].y + st.F * (st.moths[r2].y - st.moths[r3].y) + jitterY);
+
+        const jRand = Math.random() < 0.5 ? 0 : 1;
+        const ux = (Math.random() <= st.CR || jRand === 0) ? vx : sx;
+        const uy = (Math.random() <= st.CR || jRand === 1) ? vy : sy;
+
+        const spiralFit = evalGridFitness(sx, sy);
+        const trialFit = evalGridFitness(ux, uy);
+
+        let chosenX = sx;
+        let chosenY = sy;
+        let chosenFit = spiralFit;
+
+        if (trialFit <= spiralFit) {
+          chosenX = ux;
+          chosenY = uy;
+          chosenFit = trialFit;
+        }
+
+        if (chosenFit <= moth.fitness || t <= 3) {
+          if (trialFit < moth.fitness) {
+            st.deGreedyWins++;
+            if (st.deVectors.length < 7) {
+              st.deVectors.push({
+                diffFromX: st.moths[r3].x,
+                diffFromY: st.moths[r3].y,
+                diffToX: st.moths[r2].x,
+                diffToY: st.moths[r2].y,
+                trialX: ux,
+                trialY: uy
+              });
+            }
+          }
+          moth.x = chosenX;
+          moth.y = chosenY;
+          moth.fitness = chosenFit;
+        } else {
+          const microAngle = baseAngle + 0.42;
+          const microR = Math.max(0.05, dist * 0.86);
+          moth.x = clampGrid(targetFlame.x - microR * Math.cos(microAngle));
+          moth.y = clampGrid(targetFlame.y - microR * Math.sin(microAngle));
+          moth.fitness = evalGridFitness(moth.x, moth.y);
+        }
+
+        moth.trail.push({ x: moth.x, y: moth.y });
+        if (moth.trail.length > 14) moth.trail.shift();
+
+        if (moth.fitness < st.flames[0].fitness) {
+          st.flames[0] = { x: moth.x, y: moth.y, fitness: moth.fitness };
+        }
+      }
+
+      updateMfoTelemetry();
+    }
+
+    // --- Advance 1 Iteration of SA-SCA ---
+    function advanceScaIteration() {
+      const st = lab2D.sca;
+      if (st.iter >= st.maxIter) {
+        resetScaSimulation();
+        return;
+      }
+
+      st.iter++;
+      const t = st.iter;
+      const T = st.maxIter;
+
+      const r1Sca = st.a - t * (st.a / T);
+      st.r1 = r1Sca;
+      st.jumpArcs = [];
+
+      for (let i = 0; i < st.N; i++) {
+        const ag = st.agents[i];
+        ag.prevX = ag.x;
+        ag.prevY = ag.y;
+
+        const r2 = 2.0 * Math.PI * Math.random();
+        const r3 = 2.0 * Math.random();
+        const r4 = Math.random();
+
+        const stepScale = r1Sca * 0.65;
+        let cx, cy;
+        if (r4 < 0.5) {
+          cx = clampGrid(ag.x + stepScale * Math.sin(r2) * Math.abs(r3 * st.best.x - ag.x));
+          cy = clampGrid(ag.y + stepScale * Math.sin(r2 + 0.7) * Math.abs(r3 * st.best.y - ag.y));
+        } else {
+          cx = clampGrid(ag.x + stepScale * Math.cos(r2) * Math.abs(r3 * st.best.x - ag.x));
+          cy = clampGrid(ag.y + stepScale * Math.cos(r2 + 0.7) * Math.abs(r3 * st.best.y - ag.y));
+        }
+
+        const candFit = evalGridFitness(cx, cy);
+        const deltaE = candFit - ag.fitness;
+
+        if (deltaE <= 0) {
+          ag.x = cx;
+          ag.y = cy;
+          ag.fitness = candFit;
+          if (candFit < st.best.fitness) {
+            st.best = { x: cx, y: cy, fitness: candFit };
+          }
+        } else {
+          const prob = Math.exp((-deltaE * 95.0) / Math.max(0.1, st.temp));
+          if (Math.random() < prob) {
+            st.jumpArcs.push({
+              fromX: ag.x,
+              fromY: ag.y,
+              toX: cx,
+              toY: cy
+            });
+            ag.x = cx;
+            ag.y = cy;
+            ag.fitness = candFit;
+            st.jumps++;
+          }
+        }
+
+        ag.trail.push({ x: ag.x, y: ag.y });
+        if (ag.trail.length > 14) ag.trail.shift();
+      }
+
+      st.temp *= st.alpha;
+      updateScaTelemetry();
+    }
+
+    function updateMfoTelemetry() {
+      const st = lab2D.mfo;
+      const flameNo = Math.max(1, Math.round(st.N - st.iter * ((st.N - 1) / st.maxIter)));
+      const bestMfo = st.flames.length ? st.flames[0].fitness : 0;
+
+      document.getElementById('tele-mfo-iter').textContent = `${st.iter} / ${st.maxIter}`;
+      document.getElementById('tele-mfo-fit').textContent = bestMfo.toFixed(3);
+      document.getElementById('tele-mfo-flames').textContent = flameNo;
+      document.getElementById('tele-mfo-dewins').textContent = st.deGreedyWins;
+    }
+
+    function updateScaTelemetry() {
+      const st = lab2D.sca;
+      document.getElementById('tele-sca-iter').textContent = `${st.iter} / ${st.maxIter}`;
+      document.getElementById('tele-sca-fit').textContent = st.best.fitness.toFixed(3);
+      document.getElementById('tele-sca-temp').textContent = `${st.temp.toFixed(1)}°`;
+      document.getElementById('tele-sca-jumps').textContent = st.jumps;
+    }
+
+    function syncPlayButtonsUI() {
+      const mfoPlay = lab2D.mfo.playing;
+      const scaPlay = lab2D.sca.playing;
+
+      document.getElementById('btn-mfo-play').textContent = mfoPlay ? '⏸ Pause' : '▶ Play';
+      document.getElementById('btn-sca-play').textContent = scaPlay ? '⏸ Pause' : '▶ Play';
+
+      const anyPlaying = mfoPlay || scaPlay;
+      document.getElementById('icon-both-play').textContent = anyPlaying ? '⏸' : '▶';
+    }
+
+    function toggleMfoPlay() {
+      lab2D.mfo.playing = !lab2D.mfo.playing;
+      syncPlayButtonsUI();
+    }
+
+    function toggleScaPlay() {
+      lab2D.sca.playing = !lab2D.sca.playing;
+      syncPlayButtonsUI();
+    }
+
+    function toggleBothCanvasPlay() {
+      const nextState = !(lab2D.mfo.playing || lab2D.sca.playing);
+      lab2D.mfo.playing = nextState;
+      lab2D.sca.playing = nextState;
+      syncPlayButtonsUI();
+    }
+
+    function stepMfoOnce() {
+      lab2D.mfo.playing = false;
+      syncPlayButtonsUI();
+      advanceMfoIteration();
+      lab2D.mfo.subProgress = 1.0;
+      drawMfoCanvas();
+    }
+
+    function stepScaOnce() {
+      lab2D.sca.playing = false;
+      syncPlayButtonsUI();
+      advanceScaIteration();
+      lab2D.sca.subProgress = 1.0;
+      drawScaCanvas();
+    }
+
+    function setGlobalAnimSpeed(mult) {
+      lab2D.animSpeed = mult;
+      [0.5, 1, 2].forEach(val => {
+        const btn = document.getElementById(`spd-btn-${val}`);
+        if (val === mult) {
+          btn.className = 'px-2.5 py-1 rounded-md bg-white text-[#18181B] font-bold shadow-sm transition';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-md text-[#52525B] hover:text-[#18181B] transition';
+        }
+      });
+    }
+
+    // Presets for Tab 1 DMFO-DE
+    function applyTab1MfoPreset(preset) {
+      const st = lab2D.mfo;
+      if (preset === 'balanced') {
+        st.N = 24; st.maxIter = 120; st.b = 1.0; st.F = 0.60; st.CR = 0.80;
+      } else if (preset === 'de_high') {
+        st.N = 32; st.maxIter = 150; st.b = 0.8; st.F = 1.15; st.CR = 0.95;
+      } else if (preset === 'tight_spiral') {
+        st.N = 20; st.maxIter = 100; st.b = 2.1; st.F = 0.35; st.CR = 0.55;
+      }
+
+      document.getElementById('t1-mfo-n').value = st.N;
+      document.getElementById('lbl-t1-mfo-n').textContent = st.N;
+      document.getElementById('t1-mfo-t').value = st.maxIter;
+      document.getElementById('lbl-t1-mfo-t').textContent = st.maxIter;
+      document.getElementById('t1-mfo-b').value = st.b;
+      document.getElementById('lbl-t1-mfo-b').textContent = st.b.toFixed(1);
+      document.getElementById('t1-mfo-f').value = st.F;
+      document.getElementById('lbl-t1-mfo-f').textContent = st.F.toFixed(2);
+      document.getElementById('t1-mfo-cr').value = st.CR;
+      document.getElementById('lbl-t1-mfo-cr').textContent = st.CR.toFixed(2);
+
+      resetMfoSimulation();
+    }
+
+    // Presets for Tab 1 SA-SCA
+    function applyTab1ScaPreset(preset) {
+      const st = lab2D.sca;
+      if (preset === 'balanced') {
+        st.N = 24; st.maxIter = 120; st.a = 2.0; st.T0 = 150; st.alpha = 0.95;
+      } else if (preset === 'hot_t300') {
+        st.N = 30; st.maxIter = 150; st.a = 2.8; st.T0 = 300; st.alpha = 0.94;
+      } else if (preset === 'slow_cool') {
+        st.N = 28; st.maxIter = 180; st.a = 1.8; st.T0 = 200; st.alpha = 0.98;
+      }
+
+      document.getElementById('t1-sca-n').value = st.N;
+      document.getElementById('lbl-t1-sca-n').textContent = st.N;
+      document.getElementById('t1-sca-t').value = st.maxIter;
+      document.getElementById('lbl-t1-sca-t').textContent = st.maxIter;
+      document.getElementById('t1-sca-a').value = st.a;
+      document.getElementById('lbl-t1-sca-a').textContent = st.a.toFixed(1);
+      document.getElementById('t1-sca-t0').value = st.T0;
+      document.getElementById('lbl-t1-sca-t0').textContent = `${st.T0}°`;
+      document.getElementById('t1-sca-alpha').value = st.alpha;
+      document.getElementById('lbl-t1-sca-alpha').textContent = st.alpha.toFixed(2);
+
+      resetScaSimulation();
+    }
+
+    function setupHighDpiCanvas(canvas) {
+      if (!canvas) return null;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return null;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, w: rect.width, h: rect.height };
+    }
+
+    function drawEditorialGrid(ctx, w, h, showGrid) {
+      const pad = { top: 24, right: 24, bottom: 32, left: 36 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      ctx.fillStyle = '#FCFBF9';
+      ctx.fillRect(0, 0, w, h);
+
+      function toPx(gx, gy) {
+        return {
+          x: pad.left + (gx / 7.0) * plotW,
+          y: pad.top + ((7.0 - gy) / 7.0) * plotH
+        };
+      }
+
+      // Local Optima Traps
+      for (const tr of lab2D.localTraps) {
+        const pt = toPx(tr.x, tr.y);
+        const grad = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, 44);
+        grad.addColorStop(0, 'rgba(190, 18, 60, 0.11)');
+        grad.addColorStop(1, 'rgba(190, 18, 60, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 44, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(190, 18, 60, 0.30)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 18, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#BE123C';
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Local Trap', pt.x, pt.y + 28);
+      }
+
+      // 8x8 Discrete VM Grid
+      if (showGrid) {
+        ctx.font = '10px "JetBrains Mono", monospace';
+        for (let g = 0; g <= 7; g++) {
+          const pX = toPx(g, 0);
+          const pTop = toPx(g, 7);
+          ctx.strokeStyle = '#E7E4DC';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pX.x, pTop.y);
+          ctx.lineTo(pX.x, pX.y);
+          ctx.stroke();
+
+          ctx.fillStyle = '#52525B';
+          ctx.textAlign = 'center';
+          ctx.fillText(`VM${g}`, pX.x, h - 10);
+
+          const pY = toPx(0, g);
+          const pRight = toPx(7, g);
+          ctx.beginPath();
+          ctx.moveTo(pY.x, pY.y);
+          ctx.lineTo(pRight.x, pY.y);
+          ctx.stroke();
+
+          ctx.textAlign = 'right';
+          ctx.fillText(`VM${g}`, pad.left - 7, pY.y + 3);
+        }
+
+        ctx.fillStyle = '#C7C3B8';
+        for (let gx = 0; gx <= 7; gx++) {
+          for (let gy = 0; gy <= 7; gy++) {
+            const pt = toPx(gx, gy);
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 1.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // Global Optimum Beacon
+      const optPt = toPx(lab2D.globalOpt.x, lab2D.globalOpt.y);
+      for (let r = 16; r <= 64; r += 16) {
+        ctx.strokeStyle = `rgba(21, 128, 61, ${0.32 - r * 0.0035})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(optPt.x, optPt.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = 'rgba(21, 128, 61, 0.16)';
+      ctx.beginPath();
+      ctx.arc(optPt.x, optPt.y, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#15803D';
+      ctx.beginPath();
+      ctx.arc(optPt.x, optPt.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`OPTIMUM (${Math.round(lab2D.globalOpt.x)},${Math.round(lab2D.globalOpt.y)})`, optPt.x, optPt.y - 12);
+
+      return { pad, plotW, plotH, toPx };
+    }
+
+    function drawMfoCanvas() {
+      const setup = setupHighDpiCanvas(document.getElementById('canvasMfoDe'));
+      if (!setup) return;
+      const { ctx, w, h } = setup;
+      const showGrid = document.getElementById('chk-grid').checked;
+      const showTrails = document.getElementById('chk-trails').checked;
+      const showHybridFx = document.getElementById('chk-hybrid-fx').checked;
+      const showSnap = document.getElementById('chk-snap-grid').checked;
+
+      const { toPx } = drawEditorialGrid(ctx, w, h, showGrid);
+      const st = lab2D.mfo;
+      const alphaLerp = Math.min(1, Math.max(0, st.subProgress));
+
+      // 1. DE Mutation Vectors (Ochre Amber #B45309)
+      if (showHybridFx) {
+        for (const vec of st.deVectors) {
+          const pFrom = toPx(vec.diffFromX, vec.diffFromY);
+          const pTo = toPx(vec.diffToX, vec.diffToY);
+          const pTrial = toPx(vec.trialX, vec.trialY);
+
+          ctx.strokeStyle = 'rgba(180, 83, 9, 0.75)';
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(pFrom.x, pFrom.y);
+          ctx.lineTo(pTo.x, pTo.y);
+          ctx.lineTo(pTrial.x, pTrial.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#B45309';
+          ctx.beginPath();
+          ctx.arc(pTrial.x, pTrial.y, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 2. Active Flames Diamonds
+      const flameNo = Math.max(1, Math.round(st.N - st.iter * ((st.N - 1) / st.maxIter)));
+      const visibleFlames = Math.min(6, flameNo, st.flames.length);
+      for (let f = 0; f < visibleFlames; f++) {
+        const fl = st.flames[f];
+        const fp = toPx(fl.x, fl.y);
+        ctx.fillStyle = f === 0 ? '#C2410C' : 'rgba(234, 88, 12, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(fp.x, fp.y - 6.5);
+        ctx.lineTo(fp.x + 5.5, fp.y);
+        ctx.lineTo(fp.x, fp.y + 6.5);
+        ctx.lineTo(fp.x - 5.5, fp.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 3. Moths, Trails & Snap Grid
+      for (const m of st.moths) {
+        const curX = m.prevX + (m.x - m.prevX) * alphaLerp;
+        const curY = m.prevY + (m.y - m.prevY) * alphaLerp;
+        const pt = toPx(curX, curY);
+
+        if (showTrails && m.trail.length > 1) {
+          ctx.strokeStyle = 'rgba(194, 65, 12, 0.28)';
+          ctx.lineWidth = 1.25;
+          ctx.beginPath();
+          const t0 = toPx(m.trail[0].x, m.trail[0].y);
+          ctx.moveTo(t0.x, t0.y);
+          for (let k = 1; k < m.trail.length; k++) {
+            const tk = toPx(m.trail[k].x, m.trail[k].y);
+            ctx.lineTo(tk.x, tk.y);
+          }
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+        }
+
+        if (showSnap) {
+          const snapX = Math.round(curX);
+          const snapY = Math.round(curY);
+          const sPt = toPx(snapX, snapY);
+          ctx.strokeStyle = 'rgba(194, 65, 12, 0.24)';
+          ctx.setLineDash([2, 2]);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(sPt.x, sPt.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.strokeStyle = 'rgba(194, 65, 12, 0.55)';
+          ctx.strokeRect(sPt.x - 4, sPt.y - 4, 8, 8);
+        }
+
+        ctx.fillStyle = '#C2410C';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawScaCanvas() {
+      const setup = setupHighDpiCanvas(document.getElementById('canvasSaSca'));
+      if (!setup) return;
+      const { ctx, w, h } = setup;
+      const showGrid = document.getElementById('chk-grid').checked;
+      const showTrails = document.getElementById('chk-trails').checked;
+      const showHybridFx = document.getElementById('chk-hybrid-fx').checked;
+      const showSnap = document.getElementById('chk-snap-grid').checked;
+
+      const { plotW, toPx } = drawEditorialGrid(ctx, w, h, showGrid);
+      const st = lab2D.sca;
+      const alphaLerp = Math.min(1, Math.max(0, st.subProgress));
+
+      // 1. Wave Amplitude Radius r1 around Global Best P
+      const bestPt = toPx(st.best.x, st.best.y);
+      const r1Px = (st.r1 / 7.0) * plotW * 0.45;
+      if (r1Px > 3) {
+        ctx.strokeStyle = 'rgba(29, 78, 216, 0.22)';
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(bestPt.x, bestPt.y, r1Px, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 2. Metropolis Uphill Jumps (Crimson #BE123C Ripple Rings)
+      if (showHybridFx) {
+        for (const jmp of st.jumpArcs) {
+          const jFrom = toPx(jmp.fromX, jmp.fromY);
+          const jTo = toPx(jmp.toX, jmp.toY);
+
+          ctx.strokeStyle = 'rgba(190, 18, 60, 0.72)';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(jFrom.x, jFrom.y);
+          ctx.lineTo(jTo.x, jTo.y);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#BE123C';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(jTo.x, jTo.y, 7.5 + alphaLerp * 3.5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // 3. SCA Agents, Trails & Snap Grid
+      for (const ag of st.agents) {
+        const curX = ag.prevX + (ag.x - ag.prevX) * alphaLerp;
+        const curY = ag.prevY + (ag.y - ag.prevY) * alphaLerp;
+        const pt = toPx(curX, curY);
+
+        if (showTrails && ag.trail.length > 1) {
+          ctx.strokeStyle = 'rgba(29, 78, 216, 0.26)';
+          ctx.lineWidth = 1.25;
+          ctx.beginPath();
+          const t0 = toPx(ag.trail[0].x, ag.trail[0].y);
+          ctx.moveTo(t0.x, t0.y);
+          for (let k = 1; k < ag.trail.length; k++) {
+            const tk = toPx(ag.trail[k].x, ag.trail[k].y);
+            ctx.lineTo(tk.x, tk.y);
+          }
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+        }
+
+        if (showSnap) {
+          const snapX = Math.round(curX);
+          const snapY = Math.round(curY);
+          const sPt = toPx(snapX, snapY);
+          ctx.strokeStyle = 'rgba(29, 78, 216, 0.22)';
+          ctx.setLineDash([2, 2]);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(sPt.x, sPt.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.strokeStyle = 'rgba(29, 78, 216, 0.5)';
+          ctx.strokeRect(sPt.x - 4, sPt.y - 4, 8, 8);
+        }
+
+        ctx.fillStyle = '#1D4ED8';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // 4. Geometric Temperature Decay Bar Indicator (Top-Right Canvas HUD)
+      const barW = 108;
+      const barH = 26;
+      const bx = w - barW - 14;
+      const by = 10;
+      const tempRatio = Math.max(0, Math.min(1, st.temp / Math.max(1, st.T0)));
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      ctx.strokeStyle = '#DCD9D0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, barW, barH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#52525B';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`T=${st.temp.toFixed(0)}° (${Math.round(tempRatio * 100)}%)`, bx + 7, by + 11);
+
+      ctx.fillStyle = '#E7E4DC';
+      ctx.fillRect(bx + 7, by + 16, barW - 14, 5);
+      ctx.fillStyle = '#BE123C';
+      ctx.fillRect(bx + 7, by + 16, (barW - 14) * tempRatio, 5);
+    }
+
+    function drawAgentCanvases() {
+      drawMfoCanvas();
+      drawScaCanvas();
+    }
+
+    function attachCanvasClickRelocation() {
+      ['canvasMfoDe', 'canvasSaSca'].forEach(id => {
+        const cvs = document.getElementById(id);
+        cvs.addEventListener('click', function (e) {
+          const rect = cvs.getBoundingClientRect();
+          const pad = { top: 24, right: 24, bottom: 32, left: 36 };
+          const plotW = rect.width - pad.left - pad.right;
+          const plotH = rect.height - pad.top - pad.bottom;
+
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+
+          const gx = clampGrid(((clickX - pad.left) / plotW) * 7.0);
+          const gy = clampGrid(7.0 - ((clickY - pad.top) / plotH) * 7.0);
+
+          lab2D.globalOpt = { x: gx, y: gy };
+
+          // Re-evaluate DMFO-DE
+          const mfo = lab2D.mfo;
+          mfo.iter = Math.min(mfo.iter, Math.floor(mfo.maxIter * 0.4));
+          for (const m of mfo.moths) m.fitness = evalGridFitness(m.x, m.y);
+          mfo.flames = mfo.moths
+            .map(m => ({ x: m.x, y: m.y, fitness: m.fitness }))
+            .sort((a, b) => a.fitness - b.fitness);
+
+          // Re-evaluate SA-SCA & reheat slightly to escape old optimum
+          const sca = lab2D.sca;
+          sca.iter = Math.min(sca.iter, Math.floor(sca.maxIter * 0.4));
+          sca.temp = Math.max(sca.temp, sca.T0 * 0.65);
+          sca.best.fitness = Infinity;
+          for (const ag of sca.agents) {
+            ag.fitness = evalGridFitness(ag.x, ag.y);
+            if (ag.fitness < sca.best.fitness) {
+              sca.best = { x: ag.x, y: ag.y, fitness: ag.fitness };
+            }
+          }
+
+          updateMfoTelemetry();
+          updateScaTelemetry();
+          drawAgentCanvases();
+        });
+      });
+    }
+
+    function animationLoop() {
+      if (activeTab === 1) {
+        const inc = 0.045 * lab2D.animSpeed;
+
+        if (lab2D.mfo.playing) {
+          lab2D.mfo.subProgress += inc;
+          if (lab2D.mfo.subProgress >= 1.0) {
+            lab2D.mfo.subProgress = 0;
+            advanceMfoIteration();
+          }
+          drawMfoCanvas();
+        }
+
+        if (lab2D.sca.playing) {
+          lab2D.sca.subProgress += inc;
+          if (lab2D.sca.subProgress >= 1.0) {
+            lab2D.sca.subProgress = 0;
+            advanceScaIteration();
+          }
+          drawScaCanvas();
+        }
+      }
+      requestAnimationFrame(animationLoop);
+    }
+
+    function bindTab1IndependentSliders() {
+      // DMFO-DE Sliders
+      document.getElementById('t1-mfo-n').addEventListener('input', e => {
+        lab2D.mfo.N = parseInt(e.target.value, 10);
+        document.getElementById('lbl-t1-mfo-n').textContent = lab2D.mfo.N;
+        resetMfoSimulation();
+      });
+
+      document.getElementById('t1-mfo-t').addEventListener('input', e => {
+        lab2D.mfo.maxIter = parseInt(e.target.value, 10);
+        document.getElementById('lbl-t1-mfo-t').textContent = lab2D.mfo.maxIter;
+        updateMfoTelemetry();
+      });
+
+      document.getElementById('t1-mfo-b').addEventListener('input', e => {
+        lab2D.mfo.b = parseFloat(e.target.value);
+        document.getElementById('lbl-t1-mfo-b').textContent = lab2D.mfo.b.toFixed(1);
+      });
+
+      document.getElementById('t1-mfo-f').addEventListener('input', e => {
+        lab2D.mfo.F = parseFloat(e.target.value);
+        document.getElementById('lbl-t1-mfo-f').textContent = lab2D.mfo.F.toFixed(2);
+      });
+
+      document.getElementById('t1-mfo-cr').addEventListener('input', e => {
+        lab2D.mfo.CR = parseFloat(e.target.value);
+        document.getElementById('lbl-t1-mfo-cr').textContent = lab2D.mfo.CR.toFixed(2);
+      });
+
+      // SA-SCA Sliders
+      document.getElementById('t1-sca-n').addEventListener('input', e => {
+        lab2D.sca.N = parseInt(e.target.value, 10);
+        document.getElementById('lbl-t1-sca-n').textContent = lab2D.sca.N;
+        resetScaSimulation();
+      });
+
+      document.getElementById('t1-sca-t').addEventListener('input', e => {
+        lab2D.sca.maxIter = parseInt(e.target.value, 10);
+        document.getElementById('lbl-t1-sca-t').textContent = lab2D.sca.maxIter;
+        updateScaTelemetry();
+      });
+
+      document.getElementById('t1-sca-a').addEventListener('input', e => {
+        lab2D.sca.a = parseFloat(e.target.value);
+        document.getElementById('lbl-t1-sca-a').textContent = lab2D.sca.a.toFixed(1);
+      });
+
+      document.getElementById('t1-sca-t0').addEventListener('input', e => {
+        lab2D.sca.T0 = parseInt(e.target.value, 10);
+        lab2D.sca.temp = lab2D.sca.T0;
+        document.getElementById('lbl-t1-sca-t0').textContent = `${lab2D.sca.T0}°`;
+        updateScaTelemetry();
+        drawScaCanvas();
+      });
+
+      document.getElementById('t1-sca-alpha').addEventListener('input', e => {
+        lab2D.sca.alpha = parseFloat(e.target.value);
+        document.getElementById('lbl-t1-sca-alpha').textContent = lab2D.sca.alpha.toFixed(2);
+      });
+    }
+
+    // =========================================================================
+    // 3. TAB 2: CLOUDSIM PLUS ENGINE (SEPARATE PARAMETERS PER ALGORITHM)
+    // =========================================================================
+    const HOST_MAX_POWER_WATT = 250.0;
+    const GOCJ_POOL = [
+      15000, 18000, 21000, 25000, 29000, 33000, 38000, 42000,
+      47000, 52000, 59000, 68000, 77000, 88000, 99000, 112000,
+      128000, 145000, 165000, 185000, 210000, 240000, 275000
+    ];
+
+    let uploadedLengths = null;
+    let latestRunResult = null;
+
+    function syncTab2Labels() {
+      document.getElementById('lbl-t2-mfo-n').textContent = document.getElementById('t2-mfo-n').value;
+      document.getElementById('lbl-t2-mfo-iter').textContent = document.getElementById('t2-mfo-iter').value;
+      document.getElementById('lbl-t2-mfo-b').textContent = parseFloat(document.getElementById('t2-mfo-b').value).toFixed(1);
+      document.getElementById('lbl-t2-mfo-f').textContent = parseFloat(document.getElementById('t2-mfo-f').value).toFixed(2);
+      document.getElementById('lbl-t2-mfo-cr').textContent = parseFloat(document.getElementById('t2-mfo-cr').value).toFixed(2);
+
+      document.getElementById('lbl-t2-sca-n').textContent = document.getElementById('t2-sca-n').value;
+      document.getElementById('lbl-t2-sca-iter').textContent = document.getElementById('t2-sca-iter').value;
+      document.getElementById('lbl-t2-sca-a').textContent = parseFloat(document.getElementById('t2-sca-a').value).toFixed(1);
+      document.getElementById('lbl-t2-sca-t0').textContent = `${document.getElementById('t2-sca-t0').value}°`;
+      document.getElementById('lbl-t2-sca-alpha').textContent = parseFloat(document.getElementById('t2-sca-alpha').value).toFixed(2);
+    }
+
+    function resetTab2MfoDefaults() {
+      document.getElementById('t2-mfo-n').value = '30';
+      document.getElementById('t2-mfo-iter').value = '100';
+      document.getElementById('t2-mfo-b').value = '1.0';
+      document.getElementById('t2-mfo-f').value = '0.50';
+      document.getElementById('t2-mfo-cr').value = '0.80';
+      syncTab2Labels();
+    }
+
+    function resetTab2ScaDefaults() {
+      document.getElementById('t2-sca-n').value = '30';
+      document.getElementById('t2-sca-iter').value = '100';
+      document.getElementById('t2-sca-a').value = '2.0';
+      document.getElementById('t2-sca-t0').value = '100';
+      document.getElementById('t2-sca-alpha').value = '0.95';
+      syncTab2Labels();
+    }
+
+    function buildVmMipsArray() {
+      const vmCount = Math.max(4, Math.min(16, parseInt(document.getElementById('infra-vms').value, 10) || 8));
+      const profile = document.getElementById('infra-vm-profile').value;
+      const baseHetero = [1000, 1000, 2000, 3000, 2500, 4000, 4000, 4000];
+      const baseHighVar = [500, 800, 1200, 2000, 3500, 4500, 5500, 6000];
+
+      const arr = [];
+      for (let i = 0; i < vmCount; i++) {
+        if (profile === 'homo_2500') {
+          arr.push(2500);
+        } else if (profile === 'high_var') {
+          arr.push(baseHighVar[i % baseHighVar.length]);
+        } else {
+          arr.push(baseHetero[i % baseHetero.length]);
+        }
+      }
+      return arr;
+    }
+
+    function updateInfraPreview() {
+      const hosts = parseInt(document.getElementById('infra-hosts').value, 10) || 4;
+      const vms = parseInt(document.getElementById('infra-vms').value, 10) || 8;
+      document.getElementById('lbl-infra-hosts').textContent = `${hosts}`;
+      document.getElementById('lbl-infra-vms').textContent = `${vms}`;
+
+      const mipsArr = buildVmMipsArray();
+      const totalMips = mipsArr.reduce((acc, v) => acc + v, 0);
+      document.getElementById('lbl-total-mips').textContent = `${totalMips.toLocaleString('id-ID')} MIPS`;
+
+      const container = document.getElementById('vm-pills-container');
+      container.innerHTML = mipsArr.map((m, idx) => `
+        <span class="px-1.5 py-0.5 rounded bg-white border border-[#DCD9D0] text-[#18181B]">
+          VM${idx}:${m}
+        </span>
+      `).join('');
+    }
+
+    function generatePresetCloudlets(count) {
+      let seed = 2026 + count;
+      function nextRand() {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      }
+      const list = [];
+      for (let i = 0; i < count; i++) {
+        const idx = nextRand() < 0.65
+          ? Math.floor(nextRand() * 10)
+          : 10 + Math.floor(nextRand() * (GOCJ_POOL.length - 10));
+        list.push(GOCJ_POOL[idx]);
+      }
+      return list;
+    }
+
+    function handlePresetChange() {
+      uploadedLengths = null;
+      document.getElementById('gocj-file-input').value = '';
+      document.getElementById('btn-clear-upload').classList.add('hidden');
+      const count = parseInt(document.getElementById('preset-workload').value, 10);
+      document.getElementById('dataset-active-badge').textContent = `${count} Tugas`;
+      document.getElementById('dataset-active-name').textContent = `Aktif: GoCJ_Dataset_${count}.txt`;
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const lines = (e.target.result || '').split(/\r?\n/);
+        const parsed = [];
+        for (const raw of lines) {
+          const trimmed = raw.trim();
+          if (!trimmed) continue;
+          const val = Math.round(parseFloat(trimmed));
+          if (!isNaN(val) && val > 0) parsed.push(val);
+        }
+        if (parsed.length === 0) {
+          document.getElementById('dataset-active-name').textContent = 'Format berkas tidak valid';
+          return;
+        }
+        uploadedLengths = parsed;
+        document.getElementById('dataset-active-badge').textContent = `${parsed.length} Tugas`;
+        document.getElementById('dataset-active-name').textContent = `Aktif: ${file.name}`;
+        document.getElementById('btn-clear-upload').classList.remove('hidden');
+      };
+      reader.readAsText(file);
+    }
+
+    function clearUploadedDataset() {
+      handlePresetChange();
+    }
+
+    function decodeVm(val, vmCount) {
+      const idx = Math.round(val);
+      return Math.max(0, Math.min(vmCount - 1, idx));
+    }
+
+    function reflectContinuous(val, min, max) {
+      let bounces = 0;
+      while ((val < min || val > max) && bounces < 5) {
+        if (val < min) val = min + (min - val);
+        if (val > max) val = max - (val - max);
+        bounces++;
+      }
+      return (val < min || val > max) ? min + Math.random() * (max - min) : val;
+    }
+
+    function evaluateSchedule(pos, cloudlets, vmMips, hostCount) {
+      const vmCount = vmMips.length;
+      const vmLoads = new Float64Array(vmCount);
+
+      for (let i = 0; i < pos.length; i++) {
+        const vmIdx = decodeVm(pos[i], vmCount);
+        vmLoads[vmIdx] += cloudlets[i] / vmMips[vmIdx];
+      }
+
+      let makespan = 0;
+      let totalExec = 0;
+      for (let j = 0; j < vmCount; j++) {
+        if (vmLoads[j] > makespan) makespan = vmLoads[j];
+        totalExec += vmLoads[j];
+      }
+
+      const avgLoad = totalExec / vmCount;
+      const utilization = makespan > 0 ? (avgLoad / makespan) * 100.0 : 0.0;
+
+      let variance = 0;
+      for (let j = 0; j < vmCount; j++) {
+        const d = vmLoads[j] - avgLoad;
+        variance += d * d;
+      }
+      const stdDev = Math.sqrt(variance / vmCount);
+
+      const pIdle = 0.6 * HOST_MAX_POWER_WATT;
+      const utilRatio = utilization / 100.0;
+      const avgPower = pIdle + (HOST_MAX_POWER_WATT - pIdle) * utilRatio;
+      const energyKwh = (hostCount * avgPower * makespan) / 3600000.0;
+
+      return { makespan, utilization, stdDev, energyKwh, vmLoads: Array.from(vmLoads) };
+    }
+
+    function discreteSwap(pos) {
+      const copy = pos.slice();
+      const dim = copy.length;
+      if (dim < 2) return copy;
+      const a = Math.floor(Math.random() * dim);
+      let b = Math.floor(Math.random() * dim);
+      if (a === b) b = (a + 1) % dim;
+      const tmp = copy[a];
+      copy[a] = copy[b];
+      copy[b] = tmp;
+      return copy;
+    }
+
+    // DMFO-DE Solver with independent N_dmfo, Iter_dmfo, b, F, CR
+    function solveDMFO_DE(cloudlets, vmMips, hostCount, popSize, maxIter, spiralB, F, CR) {
+      const dim = cloudlets.length;
+      const maxBound = vmMips.length - 1.0;
+
+      const moths = [];
+      for (let i = 0; i < popSize; i++) {
+        const pos = new Float64Array(dim);
+        for (let d = 0; d < dim; d++) pos[d] = Math.random() * maxBound;
+        moths.push({ pos, fitness: evaluateSchedule(pos, cloudlets, vmMips, hostCount).makespan });
+      }
+
+      let flames = moths
+        .map(m => ({ pos: m.pos.slice(), fitness: m.fitness }))
+        .sort((a, b) => a.fitness - b.fitness);
+
+      const convergence = [];
+
+      for (let t = 1; t <= maxIter; t++) {
+        if (t > 1) {
+          const merged = [
+            ...moths.map(m => ({ pos: m.pos.slice(), fitness: m.fitness })),
+            ...flames
+          ].sort((a, b) => a.fitness - b.fitness);
+          flames = merged.slice(0, popSize);
+        }
+
+        const flameNo = Math.max(1, Math.round(popSize - t * ((popSize - 1.0) / maxIter)));
+        const a = -1.0 + t * (-1.0 / maxIter);
+
+        for (let i = 0; i < popSize; i++) {
+          const targetFlame = flames[Math.min(i, flameNo - 1)].pos;
+          const curPos = moths[i].pos;
+
+          // Logarithmic Spiral with spiral constant b
+          const spiralPos = new Float64Array(dim);
+          for (let d = 0; d < dim; d++) {
+            const dist = Math.abs(targetFlame[d] - curPos[d]);
+            const r = (a - 1.0) * Math.random() + 1.0;
+            const val = dist * Math.exp(spiralB * r) * Math.cos(2.0 * Math.PI * r) + targetFlame[d];
+            spiralPos[d] = reflectContinuous(val, 0.0, maxBound);
+          }
+
+          // DE/rand/1 Mutation & Binomial Crossover
+          let r1 = Math.floor(Math.random() * popSize);
+          while (r1 === i) r1 = Math.floor(Math.random() * popSize);
+          let r2 = Math.floor(Math.random() * popSize);
+          while (r2 === i || r2 === r1) r2 = Math.floor(Math.random() * popSize);
+          let r3 = Math.floor(Math.random() * popSize);
+          while (r3 === i || r3 === r1 || r3 === r2) r3 = Math.floor(Math.random() * popSize);
+
+          const jRand = Math.floor(Math.random() * dim);
+          let trialPos = new Float64Array(dim);
+          for (let d = 0; d < dim; d++) {
+            if (Math.random() <= CR || d === jRand) {
+              const mut = flames[r1].pos[d] + F * (moths[r2].pos[d] - moths[r3].pos[d]);
+              trialPos[d] = reflectContinuous(mut, 0.0, maxBound);
+            } else {
+              trialPos[d] = spiralPos[d];
+            }
+          }
+
+          if (Math.random() < 0.45) {
+            trialPos = discreteSwap(trialPos);
+          }
+
+          const spiralFit = evaluateSchedule(spiralPos, cloudlets, vmMips, hostCount).makespan;
+          const trialFit = evaluateSchedule(trialPos, cloudlets, vmMips, hostCount).makespan;
+
+          let bestPos = curPos;
+          let bestFit = moths[i].fitness;
+
+          if (spiralFit <= bestFit) {
+            bestPos = spiralPos;
+            bestFit = spiralFit;
+          }
+          if (trialFit <= bestFit) {
+            bestPos = trialPos;
+            bestFit = trialFit;
+          }
+
+          moths[i].pos = bestPos;
+          moths[i].fitness = bestFit;
+
+          if (bestFit < flames[0].fitness) {
+            flames[0] = { pos: bestPos.slice(), fitness: bestFit };
+          }
+        }
+
+        convergence.push(flames[0].fitness);
+      }
+
+      return {
+        bestPos: flames[0].pos,
+        convergence,
+        metrics: evaluateSchedule(flames[0].pos, cloudlets, vmMips, hostCount)
+      };
+    }
+
+    // SA-SCA Solver with independent N_sasca, Iter_sasca, a, T0, alpha
+    function solveSA_SCA(cloudlets, vmMips, hostCount, popSize, maxIter, initA, T0, alpha) {
+      const dim = cloudlets.length;
+      const maxBound = vmMips.length - 1.0;
+
+      const agents = [];
+      let gBestPos = null;
+      let gBestFit = Infinity;
+
+      for (let i = 0; i < popSize; i++) {
+        const pos = new Float64Array(dim);
+        for (let d = 0; d < dim; d++) pos[d] = Math.random() * maxBound;
+        const fit = evaluateSchedule(pos, cloudlets, vmMips, hostCount).makespan;
+        agents.push({ pos, fitness: fit });
+        if (fit < gBestFit) {
+          gBestFit = fit;
+          gBestPos = pos.slice();
+        }
+      }
+
+      let T = T0;
+      const convergence = [];
+
+      for (let t = 1; t <= maxIter; t++) {
+        const r1 = initA - t * (initA / maxIter);
+        const activeRatio = Math.max(0.06, 0.35 * (1.0 - t / maxIter));
+
+        for (let i = 0; i < popSize; i++) {
+          const ag = agents[i];
+          const candPos = ag.pos.slice();
+
+          for (let d = 0; d < dim; d++) {
+            if (Math.random() > activeRatio) continue;
+            const r2 = 2.0 * Math.PI * Math.random();
+            const r3 = 2.0 * Math.random();
+            const r4 = Math.random();
+
+            const val = r4 < 0.5
+              ? candPos[d] + r1 * Math.sin(r2) * Math.abs(r3 * gBestPos[d] - candPos[d])
+              : candPos[d] + r1 * Math.cos(r2) * Math.abs(r3 * gBestPos[d] - candPos[d]);
+
+            candPos[d] = reflectContinuous(val, 0.0, maxBound);
+          }
+
+          const candFit = evaluateSchedule(candPos, cloudlets, vmMips, hostCount).makespan;
+          const deltaE = candFit - ag.fitness;
+
+          if (deltaE <= 0) {
+            ag.pos = candPos;
+            ag.fitness = candFit;
+            if (candFit < gBestFit) {
+              gBestFit = candFit;
+              gBestPos = candPos.slice();
+            }
+          } else {
+            const prob = Math.exp(-deltaE / Math.max(0.001, T));
+            if (Math.random() < prob) {
+              ag.pos = candPos;
+              ag.fitness = candFit;
+            }
+          }
+
+          if (i % 3 === 0) {
+            const neighbor = discreteSwap(gBestPos);
+            const nFit = evaluateSchedule(neighbor, cloudlets, vmMips, hostCount).makespan;
+            if (nFit < gBestFit) {
+              gBestFit = nFit;
+              gBestPos = neighbor.slice();
+            }
+          }
+        }
+
+        T *= alpha;
+        convergence.push(gBestFit);
+      }
+
+      return {
+        bestPos: gBestPos,
+        convergence,
+        metrics: evaluateSchedule(gBestPos, cloudlets, vmMips, hostCount)
+      };
+    }
+
+    function calcMeanStd(values) {
+      const n = values.length;
+      const mean = values.reduce((a, b) => a + b, 0) / n;
+      const variance = values.reduce((acc, v) => acc + (v - mean) * (v - mean), 0) / n;
+      return { mean, std: Math.sqrt(variance) };
+    }
+
+    function executeCloudBenchmark(numRuns) {
+      const btn1 = document.getElementById('btn-run-single');
+      const btn5 = document.getElementById('btn-run-multi');
+      const lbl1 = document.getElementById('lbl-btn-single');
+      const lbl5 = document.getElementById('lbl-btn-multi');
+
+      btn1.disabled = true;
+      btn5.disabled = true;
+      if (numRuns === 1) lbl1.textContent = 'Menjalankan Simulasi...';
+      else lbl5.textContent = 'Menjalankan 5x Multi-Run...';
+
+      setTimeout(() => {
+        try {
+          const presetCount = parseInt(document.getElementById('preset-workload').value, 10) || 100;
+          const cloudlets = uploadedLengths || generatePresetCloudlets(presetCount);
+          const hostCount = Math.max(2, Math.min(8, parseInt(document.getElementById('infra-hosts').value, 10) || 4));
+          const vmMips = buildVmMipsArray();
+
+          // Independent DMFO-DE Hyperparameters
+          const mfoN = parseInt(document.getElementById('t2-mfo-n').value, 10) || 30;
+          const mfoIter = parseInt(document.getElementById('t2-mfo-iter').value, 10) || 100;
+          const mfoB = parseFloat(document.getElementById('t2-mfo-b').value) || 1.0;
+          const mfoF = parseFloat(document.getElementById('t2-mfo-f').value) || 0.5;
+          const mfoCR = parseFloat(document.getElementById('t2-mfo-cr').value) || 0.8;
+
+          // Independent SA-SCA Hyperparameters
+          const scaN = parseInt(document.getElementById('t2-sca-n').value, 10) || 30;
+          const scaIter = parseInt(document.getElementById('t2-sca-iter').value, 10) || 100;
+          const scaA = parseFloat(document.getElementById('t2-sca-a').value) || 2.0;
+          const scaT0 = parseFloat(document.getElementById('t2-sca-t0').value) || 100;
+          const scaAlpha = parseFloat(document.getElementById('t2-sca-alpha').value) || 0.95;
+
+          const runsMfo = [];
+          const runsSca = [];
+
+          for (let r = 0; r < numRuns; r++) {
+            runsMfo.push(solveDMFO_DE(cloudlets, vmMips, hostCount, mfoN, mfoIter, mfoB, mfoF, mfoCR));
+            runsSca.push(solveSA_SCA(cloudlets, vmMips, hostCount, scaN, scaIter, scaA, scaT0, scaAlpha));
+          }
+
+          runsMfo.sort((a, b) => a.metrics.makespan - b.metrics.makespan);
+          runsSca.sort((a, b) => a.metrics.makespan - b.metrics.makespan);
+
+          const avgConvMfo = new Array(mfoIter).fill(0);
+          const avgConvSca = new Array(scaIter).fill(0);
+          for (let r = 0; r < numRuns; r++) {
+            for (let t = 0; t < mfoIter; t++) avgConvMfo[t] += runsMfo[r].convergence[t] / numRuns;
+            for (let t = 0; t < scaIter; t++) avgConvSca[t] += runsSca[r].convergence[t] / numRuns;
+          }
+
+          const statsMfo = {
+            makespan: calcMeanStd(runsMfo.map(x => x.metrics.makespan)),
+            utilization: calcMeanStd(runsMfo.map(x => x.metrics.utilization)),
+            stdDev: calcMeanStd(runsMfo.map(x => x.metrics.stdDev)),
+            energyKwh: calcMeanStd(runsMfo.map(x => x.metrics.energyKwh)),
+            bestMakespan: runsMfo[0].metrics.makespan
+          };
+
+          const statsSca = {
+            makespan: calcMeanStd(runsSca.map(x => x.metrics.makespan)),
+            utilization: calcMeanStd(runsSca.map(x => x.metrics.utilization)),
+            stdDev: calcMeanStd(runsSca.map(x => x.metrics.stdDev)),
+            energyKwh: calcMeanStd(runsSca.map(x => x.metrics.energyKwh)),
+            bestMakespan: runsSca[0].metrics.makespan
+          };
+
+          latestRunResult = {
+            numRuns,
+            cloudlets,
+            vmMips,
+            hostCount,
+            mfoConfig: { N: mfoN, iter: mfoIter },
+            scaConfig: { N: scaN, iter: scaIter },
+            bestMfo: runsMfo[0],
+            bestSca: runsSca[0],
+            avgConvMfo,
+            avgConvSca,
+            statsMfo,
+            statsSca
+          };
+
+          renderBenchmarkUI(latestRunResult);
+        } finally {
+          btn1.disabled = false;
+          btn5.disabled = false;
+          lbl1.textContent = 'Jalankan Simulasi Tunggal (1x Run)';
+          lbl5.textContent = 'Jalankan Benchmark Statistik (5x Multi-Run Rata-Rata)';
+        }
+      }, 25);
+    }
+
+    function renderBenchmarkUI(data) {
+      const { numRuns, cloudlets, mfoConfig, scaConfig, statsMfo, statsSca } = data;
+
+      document.getElementById('run-mode-badge').textContent =
+        numRuns === 1 ? 'MODE: 1X SINGLE RUN' : 'MODE: 5X MULTI-RUN AVERAGE';
+      document.getElementById('run-config-badge').textContent =
+        `DMFO-DE (N=${mfoConfig.N}, Iter=${mfoConfig.iter}) vs SA-SCA (N=${scaConfig.N}, Iter=${scaConfig.iter})`;
+
+      document.getElementById('kpi-makespan-mfo').textContent = `${statsMfo.makespan.mean.toFixed(2)} s`;
+      document.getElementById('kpi-makespan-sca').textContent = `${statsSca.makespan.mean.toFixed(2)} s`;
+
+      document.getElementById('kpi-util-mfo').textContent = `${statsMfo.utilization.mean.toFixed(2)} %`;
+      document.getElementById('kpi-util-sca').textContent = `${statsSca.utilization.mean.toFixed(2)} %`;
+
+      document.getElementById('kpi-std-mfo').textContent = statsMfo.stdDev.mean.toFixed(2);
+      document.getElementById('kpi-std-sca').textContent = statsSca.stdDev.mean.toFixed(2);
+
+      document.getElementById('kpi-energy-mfo').textContent = `${statsMfo.energyKwh.mean.toFixed(5)} kWh`;
+      document.getElementById('kpi-energy-sca').textContent = `${statsSca.energyKwh.mean.toFixed(5)} kWh`;
+
+      const banner = document.getElementById('winner-banner');
+      const wTitle = document.getElementById('winner-title');
+      const wDesc = document.getElementById('winner-desc');
+      const wPct = document.getElementById('winner-badge-pct');
+
+      const m1 = statsMfo.makespan.mean;
+      const m2 = statsSca.makespan.mean;
+      const prefixLabel = numRuns > 1 ? 'Rata-rata ' : '';
+
+      if (m1 <= m2) {
+        const diff = m2 - m1;
+        const pct = m2 > 0 ? (diff / m2) * 100 : 0;
+        banner.className = 'editorial-card rounded-xl p-4 sm:p-5 border-l-4 border-l-[#C2410C]';
+        wTitle.textContent = `DMFO-DE Lebih Optimal pada Dataset ${cloudlets.length} Cloudlets`;
+        wDesc.textContent = `${prefixLabel}Makespan DMFO-DE (${m1.toFixed(2)} s) unggul ${diff.toFixed(2)} detik dibanding SA-SCA (${m2.toFixed(2)} s) dengan utilisasi ${statsMfo.utilization.mean.toFixed(2)}%.`;
+        wPct.textContent = `${pct.toFixed(2)}% lebih cepat`;
+      } else {
+        const diff = m1 - m2;
+        const pct = m1 > 0 ? (diff / m1) * 100 : 0;
+        banner.className = 'editorial-card rounded-xl p-4 sm:p-5 border-l-4 border-l-[#1D4ED8]';
+        wTitle.textContent = `SA-SCA Lebih Optimal pada Dataset ${cloudlets.length} Cloudlets`;
+        wDesc.textContent = `${prefixLabel}Makespan SA-SCA (${m2.toFixed(2)} s) unggul ${diff.toFixed(2)} detik dibanding DMFO-DE (${m1.toFixed(2)} s) dengan utilisasi ${statsSca.utilization.mean.toFixed(2)}%.`;
+        wPct.textContent = `${pct.toFixed(2)}% lebih cepat`;
+      }
+
+      const multiPanel = document.getElementById('multirun-panel');
+      if (numRuns > 1) {
+        multiPanel.classList.remove('hidden');
+        document.getElementById('multirun-tbody').innerHTML = `
+          <tr>
+            <td class="py-2.5 px-3 font-semibold">Makespan (Detik) [↓]</td>
+            <td class="py-2.5 px-3">${statsMfo.makespan.mean.toFixed(2)} ± ${statsMfo.makespan.std.toFixed(2)}</td>
+            <td class="py-2.5 px-3 font-bold text-[#15803D]">${statsMfo.bestMakespan.toFixed(2)} s</td>
+            <td class="py-2.5 px-3">${statsSca.makespan.mean.toFixed(2)} ± ${statsSca.makespan.std.toFixed(2)}</td>
+            <td class="py-2.5 px-3 font-bold text-[#15803D]">${statsSca.bestMakespan.toFixed(2)} s</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-semibold">Utilization (%) [↑]</td>
+            <td class="py-2.5 px-3">${statsMfo.utilization.mean.toFixed(2)} ± ${statsMfo.utilization.std.toFixed(2)}%</td>
+            <td class="py-2.5 px-3">${data.bestMfo.metrics.utilization.toFixed(2)}%</td>
+            <td class="py-2.5 px-3">${statsSca.utilization.mean.toFixed(2)} ± ${statsSca.utilization.std.toFixed(2)}%</td>
+            <td class="py-2.5 px-3">${data.bestSca.metrics.utilization.toFixed(2)}%</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-semibold">Load StdDev [↓]</td>
+            <td class="py-2.5 px-3">${statsMfo.stdDev.mean.toFixed(2)} ± ${statsMfo.stdDev.std.toFixed(2)}</td>
+            <td class="py-2.5 px-3">${data.bestMfo.metrics.stdDev.toFixed(2)}</td>
+            <td class="py-2.5 px-3">${statsSca.stdDev.mean.toFixed(2)} ± ${statsSca.stdDev.std.toFixed(2)}</td>
+            <td class="py-2.5 px-3">${data.bestSca.metrics.stdDev.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-semibold">Energi (kWh) [↓]</td>
+            <td class="py-2.5 px-3">${statsMfo.energyKwh.mean.toFixed(5)} ± ${statsMfo.energyKwh.std.toFixed(5)}</td>
+            <td class="py-2.5 px-3">${data.bestMfo.metrics.energyKwh.toFixed(5)}</td>
+            <td class="py-2.5 px-3">${statsSca.energyKwh.mean.toFixed(5)} ± ${statsSca.energyKwh.std.toFixed(5)}</td>
+            <td class="py-2.5 px-3">${data.bestSca.metrics.energyKwh.toFixed(5)}</td>
+          </tr>
+        `;
+      } else {
+        multiPanel.classList.add('hidden');
+      }
+
+      renderBenchmarkCharts();
+      buildAssignmentRows(data);
+    }
+
+    // =========================================================================
+    // 4. EDITORIAL CANVAS CHARTS (SUPPORTS UNEQUAL ITERATION COUNTS)
+    // =========================================================================
+    let convMeta = null;
+    let vmMeta = null;
+
+    function renderBenchmarkCharts() {
+      if (!latestRunResult) return;
+      drawConvergenceChart(latestRunResult);
+      drawVmLoadChart(latestRunResult);
+    }
+
+    function drawConvergenceChart(data) {
+      const setup = setupHighDpiCanvas(document.getElementById('chartConvergence'));
+      if (!setup) return;
+      const { ctx, w, h } = setup;
+      const c1 = data.avgConvMfo;
+      const c2 = data.avgConvSca;
+      const maxLen = Math.max(c1.length, c2.length);
+
+      const pad = { top: 20, right: 20, bottom: 34, left: 60 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      ctx.fillStyle = '#FCFBF9';
+      ctx.fillRect(0, 0, w, h);
+
+      const allVals = [...c1, ...c2];
+      const minVal = Math.min(...allVals) * 0.96;
+      const maxVal = Math.max(...allVals) * 1.03;
+      const range = Math.max(1, maxVal - minVal);
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      for (let g = 0; g <= 5; g++) {
+        const val = minVal + (range * g) / 5;
+        const y = pad.top + plotH - (plotH * g) / 5;
+
+        ctx.strokeStyle = '#E7E4DC';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + plotW, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#52525B';
+        ctx.fillText(`${val.toFixed(0)}s`, pad.left - 8, y + 3);
+      }
+
+      ctx.textAlign = 'center';
+      const ticks = Math.min(6, maxLen);
+      for (let xt = 0; xt <= ticks; xt++) {
+        const idx = Math.min(maxLen - 1, Math.round((xt / ticks) * (maxLen - 1)));
+        const x = pad.left + (maxLen > 1 ? (idx / (maxLen - 1)) * plotW : 0);
+        ctx.fillStyle = '#52525B';
+        ctx.fillText(`Iter ${idx + 1}`, x, h - 10);
+      }
+
+      function drawSeries(arr, strokeColor, fillColor) {
+        if (!arr.length) return;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        let lastX = pad.left;
+        let lastY = pad.top + plotH;
+
+        arr.forEach((v, idx) => {
+          const x = pad.left + (maxLen > 1 ? (idx / (maxLen - 1)) * plotW : 0);
+          const y = pad.top + plotH - ((v - minVal) / range) * plotH;
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          lastX = x;
+          lastY = y;
+        });
+        ctx.stroke();
+
+        ctx.lineTo(lastX, pad.top + plotH);
+        ctx.lineTo(pad.left, pad.top + plotH);
+        ctx.closePath();
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+
+        // Terminal endpoint marker
+        ctx.fillStyle = strokeColor;
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      drawSeries(c2, '#1D4ED8', 'rgba(29, 78, 216, 0.06)');
+      drawSeries(c1, '#C2410C', 'rgba(194, 65, 12, 0.08)');
+
+      convMeta = { pad, plotW, maxLen, c1, c2 };
+    }
+
+    function drawVmLoadChart(data) {
+      const setup = setupHighDpiCanvas(document.getElementById('chartVmLoad'));
+      if (!setup) return;
+      const { ctx, w, h } = setup;
+      const loads1 = data.bestMfo.metrics.vmLoads;
+      const loads2 = data.bestSca.metrics.vmLoads;
+      const vmMips = data.vmMips;
+      const vmCount = vmMips.length;
+
+      const pad = { top: 20, right: 20, bottom: 38, left: 60 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      ctx.fillStyle = '#FCFBF9';
+      ctx.fillRect(0, 0, w, h);
+
+      const maxVal = Math.max(...loads1, ...loads2, 10) * 1.12;
+
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      for (let g = 0; g <= 5; g++) {
+        const val = (maxVal * g) / 5;
+        const y = pad.top + plotH - (plotH * g) / 5;
+        ctx.strokeStyle = '#E7E4DC';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + plotW, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#52525B';
+        ctx.fillText(`${val.toFixed(0)}s`, pad.left - 8, y + 3);
+      }
+
+      const groupW = plotW / vmCount;
+      const barW = Math.min(24, groupW * 0.34);
+      const bars = [];
+
+      for (let j = 0; j < vmCount; j++) {
+        const cx = pad.left + groupW * (j + 0.5);
+
+        const h1 = (loads1[j] / maxVal) * plotH;
+        ctx.fillStyle = '#C2410C';
+        ctx.beginPath();
+        ctx.roundRect(cx - barW - 1.5, pad.top + plotH - h1, barW, h1, [3, 3, 0, 0]);
+        ctx.fill();
+
+        const h2 = (loads2[j] / maxVal) * plotH;
+        ctx.fillStyle = '#1D4ED8';
+        ctx.beginPath();
+        ctx.roundRect(cx + 1.5, pad.top + plotH - h2, barW, h2, [3, 3, 0, 0]);
+        ctx.fill();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#18181B';
+        ctx.fillText(`VM${j}`, cx, h - 18);
+        ctx.fillStyle = '#71717A';
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillText(`${vmMips[j]}`, cx, h - 6);
+        ctx.font = '10px "JetBrains Mono", monospace';
+
+        bars.push({
+          vmIdx: j,
+          mips: vmMips[j],
+          xStart: pad.left + groupW * j,
+          xEnd: pad.left + groupW * (j + 1),
+          loadMfo: loads1[j],
+          loadSca: loads2[j]
+        });
+      }
+
+      vmMeta = { bars };
+    }
+
+    function bindChartHoverTooltips() {
+      const convCvs = document.getElementById('chartConvergence');
+      const convTip = document.getElementById('tooltip-convergence');
+
+      function moveConv(clientX) {
+        if (!convMeta) return;
+        const rect = convCvs.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const { pad, plotW, maxLen, c1, c2 } = convMeta;
+        if (x < pad.left || x > pad.left + plotW) {
+          convTip.classList.add('hidden');
+          return;
+        }
+        const idx = Math.max(0, Math.min(maxLen - 1, Math.round(((x - pad.left) / plotW) * (maxLen - 1))));
+        const mfoTxt = idx < c1.length ? `${c1[idx].toFixed(2)} s` : `Selesai (${c1[c1.length - 1].toFixed(2)} s)`;
+        const scaTxt = idx < c2.length ? `${c2[idx].toFixed(2)} s` : `Selesai (${c2[c2.length - 1].toFixed(2)} s)`;
+
+        convTip.innerHTML = `
+          <div class="text-[#52525B] mb-1">Iterasi #${idx + 1}</div>
+          <div class="text-[#C2410C]">DMFO-DE: <strong>${mfoTxt}</strong></div>
+          <div class="text-[#1D4ED8]">SA-SCA : <strong>${scaTxt}</strong></div>
+        `;
+        convTip.classList.remove('hidden');
+        convTip.style.left = `${Math.min(rect.width - 175, Math.max(10, x + 12))}px`;
+        convTip.style.top = '12px';
+      }
+
+      convCvs.addEventListener('mousemove', e => moveConv(e.clientX));
+      convCvs.addEventListener('touchmove', e => { if (e.touches[0]) moveConv(e.touches[0].clientX); }, { passive: true });
+      convCvs.addEventListener('mouseleave', () => convTip.classList.add('hidden'));
+
+      const vmCvs = document.getElementById('chartVmLoad');
+      const vmTip = document.getElementById('tooltip-vmload');
+
+      function moveVm(clientX) {
+        if (!vmMeta) return;
+        const rect = vmCvs.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const hit = vmMeta.bars.find(b => x >= b.xStart && x <= b.xEnd);
+        if (!hit) {
+          vmTip.classList.add('hidden');
+          return;
+        }
+        vmTip.innerHTML = `
+          <div class="font-bold text-[#18181B] mb-1">VM ${hit.vmIdx} (${hit.mips} MIPS)</div>
+          <div class="text-[#C2410C]">DMFO-DE: <strong>${hit.loadMfo.toFixed(2)} s</strong></div>
+          <div class="text-[#1D4ED8]">SA-SCA : <strong>${hit.loadSca.toFixed(2)} s</strong></div>
+        `;
+        vmTip.classList.remove('hidden');
+        vmTip.style.left = `${Math.min(rect.width - 165, Math.max(10, x - 75))}px`;
+        vmTip.style.top = '12px';
+      }
+
+      vmCvs.addEventListener('mousemove', e => moveVm(e.clientX));
+      vmCvs.addEventListener('touchmove', e => { if (e.touches[0]) moveVm(e.touches[0].clientX); }, { passive: true });
+      vmCvs.addEventListener('mouseleave', () => vmTip.classList.add('hidden'));
+    }
+
+    // =========================================================================
+    // 5. PAGINATED ASSIGNMENT TABLE & CSV EXPORT
+    // =========================================================================
+    let allAssignmentRows = [];
+    let filteredAssignmentRows = [];
+    let tablePage = 1;
+    const ROWS_PER_PAGE = 25;
+
+    function buildAssignmentRows(data) {
+      const { cloudlets, vmMips, bestMfo, bestSca } = data;
+      const vmCount = vmMips.length;
+      allAssignmentRows = [];
+
+      for (let i = 0; i < cloudlets.length; i++) {
+        const len = cloudlets[i];
+        const vm1 = decodeVm(bestMfo.bestPos[i], vmCount);
+        const exec1 = len / vmMips[vm1];
+        const vm2 = decodeVm(bestSca.bestPos[i], vmCount);
+        const exec2 = len / vmMips[vm2];
+
+        allAssignmentRows.push({
+          id: i,
+          length: len,
+          vm1,
+          mips1: vmMips[vm1],
+          exec1,
+          vm2,
+          mips2: vmMips[vm2],
+          exec2
+        });
+      }
+
+      resetTablePageAndFilter();
+    }
+
+    function resetTablePageAndFilter() {
+      tablePage = 1;
+      renderAssignmentTablePage();
+    }
+
+    function changeTablePage(delta) {
+      const maxPage = Math.max(1, Math.ceil(filteredAssignmentRows.length / ROWS_PER_PAGE));
+      tablePage = Math.max(1, Math.min(maxPage, tablePage + delta));
+      renderAssignmentTablePage();
+    }
+
+    function renderAssignmentTablePage() {
+      const q = (document.getElementById('table-search').value || '').trim().toLowerCase();
+      filteredAssignmentRows = q
+        ? allAssignmentRows.filter(r =>
+            `#${r.id}`.includes(q) ||
+            `${r.id}` === q ||
+            `vm ${r.vm1}`.includes(q) ||
+            `vm${r.vm1}`.includes(q) ||
+            `vm ${r.vm2}`.includes(q) ||
+            `vm${r.vm2}`.includes(q)
+          )
+        : allAssignmentRows;
+
+      const total = filteredAssignmentRows.length;
+      const maxPage = Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
+      if (tablePage > maxPage) tablePage = maxPage;
+
+      const startIdx = (tablePage - 1) * ROWS_PER_PAGE;
+      const endIdx = Math.min(total, startIdx + ROWS_PER_PAGE);
+      const pageSlice = filteredAssignmentRows.slice(startIdx, endIdx);
+
+      const tbody = document.getElementById('assignment-table-body');
+      tbody.innerHTML = pageSlice.map(r => `
+        <tr class="hover:bg-[#F8F7F4] transition-colors">
+          <td class="py-2 px-3 font-semibold text-[#18181B]">#${r.id}</td>
+          <td class="py-2 px-3 text-[#52525B]">${r.length.toLocaleString('id-ID')} MI</td>
+          <td class="py-2 px-3">
+            <span class="px-2 py-0.5 rounded bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] font-semibold">
+              VM ${r.vm1} (${r.mips1})
+            </span>
+          </td>
+          <td class="py-2 px-3 text-[#18181B]">${r.exec1.toFixed(2)} s</td>
+          <td class="py-2 px-3">
+            <span class="px-2 py-0.5 rounded bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] font-semibold">
+              VM ${r.vm2} (${r.mips2})
+            </span>
+          </td>
+          <td class="py-2 px-3 text-[#18181B]">${r.exec2.toFixed(2)} s</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('table-page-info').textContent = total === 0
+        ? 'Tidak ada data yang cocok'
+        : `Menampilkan ${startIdx + 1}–${endIdx} dari ${total} Cloudlets (Hal. ${tablePage}/${maxPage})`;
+
+      document.getElementById('btn-prev-page').disabled = tablePage <= 1;
+      document.getElementById('btn-next-page').disabled = tablePage >= maxPage;
+    }
+
+    function exportScheduleToCsv() {
+      if (!allAssignmentRows.length) return;
+      const header = 'Cloudlet_ID,Length_MI,VM_DMFO_DE,MIPS_DMFO_DE,ExecTime_DMFO_DE_s,VM_SA_SCA,MIPS_SA_SCA,ExecTime_SA_SCA_s\n';
+      const rows = allAssignmentRows.map(r =>
+        `${r.id},${r.length},${r.vm1},${r.mips1},${r.exec1.toFixed(4)},${r.vm2},${r.mips2},${r.exec2.toFixed(4)}`
+      ).join('\n');
+
+      const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `hasil_simulasi_dmfode_vs_sasca_${allAssignmentRows.length}tasks.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // =========================================================================
+    // 6. INITIALIZATION & RESIZE HANDLERS
+    // =========================================================================
+    window.addEventListener('resize', () => {
+      if (activeTab === 1) drawAgentCanvases();
+      else if (activeTab === 2) renderBenchmarkCharts();
+    });
+
+    window.onload = function () {
+      bindTab1IndependentSliders();
+      attachCanvasClickRelocation();
+      resetBothCanvasSimulations();
+      animationLoop();
+
+      syncTab2Labels();
+      updateInfraPreview();
+      bindChartHoverTooltips();
+      executeCloudBenchmark(1);
+    };
+  </script>
+</body>
+</html>
