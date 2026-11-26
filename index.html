@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOKA Hybrid Metaheuristic Lab: Perbandingan DMFO-DE & SA-SCA pada Penjadwalan Tugas Cloud Computing</title>
+  <link rel="stylesheet" href="intro.css" />
+  <script>document.documentElement.classList.add('has-cloud-intro');</script>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
@@ -140,6 +142,66 @@
 </head>
 <body class="min-h-screen antialiased selection:bg-orange-200 selection:text-zinc-900">
 
+  <main id="cloud-intro" class="cloud-intro" aria-labelledby="intro-title" data-scene="welcome">
+    <header class="intro-masthead">
+      <div class="intro-brand">
+        <span>SOKA Hybrid Lab</span>
+        <small>Kelompok 3</small>
+      </div>
+      <button id="intro-skip" class="intro-link" type="button">Lewati Intro</button>
+    </header>
+
+    <div class="intro-layout">
+      <div class="intro-copy">
+        <h1 id="intro-title">Siapa yang membagi tugas di cloud?</h1>
+        <p id="intro-description">Ikuti operator dari pintu pusat data, ke rak VM, sampai ke meja penjadwalan.</p>
+
+        <dl id="intro-resources" class="intro-resources" hidden>
+          <div><dt>VM 01</dt><dd>1.000 <span>MIPS</span></dd></div>
+          <div><dt>VM 02</dt><dd>2.000 <span>MIPS</span></dd></div>
+          <div><dt>VM 03</dt><dd>3.000 <span>MIPS</span></dd></div>
+        </dl>
+
+        <dl id="intro-algorithms" class="intro-algorithms" hidden>
+          <div><dt>DMFO-DE</dt><dd>Mutasi DE menambah variasi kandidat jadwal.</dd></div>
+          <div><dt>SA-SCA</dt><dd>Sesekali menerima kandidat yang lebih buruk untuk membantu keluar dari optimum lokal.</dd></div>
+        </dl>
+
+        <div class="intro-actions">
+          <button id="intro-next" class="intro-primary" type="button">Mulai Tur</button>
+          <button id="intro-replay" class="intro-link" type="button" hidden>Ulangi Intro</button>
+        </div>
+        <p id="intro-status" class="intro-sr-only" role="status" aria-atomic="true"></p>
+      </div>
+
+      <figure class="intro-figure">
+        <div id="intro-viewport" class="intro-viewport" aria-hidden="true">
+          <div class="intro-scene-label"><span></span>Pusat data</div>
+          <div id="intro-diagram" class="intro-diagram">
+            <div class="intro-diagram-door">
+              <div></div><span>Pintu masuk</span>
+            </div>
+            <div class="intro-diagram-rack">
+              <div><i></i><i></i><i></i></div><span>Rak VM</span>
+            </div>
+            <div class="intro-diagram-schedule">
+              <div><i></i><i></i></div><span>Scheduling</span>
+            </div>
+          </div>
+          <div class="intro-scene-footer" id="intro-scene-footer">Denah pusat data</div>
+        </div>
+        <figcaption>
+          <ol class="intro-stops" aria-label="Urutan tur">
+            <li aria-current="step"><span>01</span>Pintu Masuk</li>
+            <li><span>02</span>Rak VM</li>
+            <li><span>03</span>Scheduling</li>
+          </ol>
+        </figcaption>
+      </figure>
+    </div>
+  </main>
+
+  <div id="cloud-lab">
   <!-- ===================================================================== -->
   <!-- EDITORIAL TECHNICAL LAB HEADER & NAVIGATION                           -->
   <!-- ===================================================================== -->
@@ -155,7 +217,7 @@
             </span>
             <span class="text-[11px] font-mono text-[#52525B]">Swiss Scientific Paper Lab • CloudSim Plus</span>
           </div>
-          <h1 class="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-[#18181B]">
+          <h1 id="cloud-lab-title" tabindex="-1" class="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-[#18181B]">
             SOKA Hybrid Metaheuristic Lab:
             <span class="text-[#C2410C]">DMFO-DE</span>
             <span class="text-[#71717A] font-semibold">vs</span>
@@ -1221,7 +1283,10 @@
   <footer class="border-t border-[#DCD9D0] bg-white mt-12 py-5 text-center text-xs text-[#52525B] font-mono">
     Kelompok 3 SOKA • SOKA Hybrid Metaheuristic Lab: Perbandingan DMFO-DE vs SA-SCA pada Penjadwalan Tugas Cloud Computing
   </footer>
+  </div>
+  <div id="intro-lab-panel" aria-hidden="true" hidden></div>
 
+  <script src="intro.js"></script>
   <!-- ===================================================================== -->
   <!-- JAVASCRIPT ENGINE: INDEPENDENT 2D LABS, CLOUDSIM BENCHMARK & CHARTS   -->
   <!-- ===================================================================== -->
@@ -3230,12 +3295,11 @@
     // =========================================================================
     // 6. INITIALIZATION & RESIZE HANDLERS
     // =========================================================================
-    window.addEventListener('resize', () => {
-      if (activeTab === 1) drawAgentCanvases();
-      else if (activeTab === 2) renderBenchmarkCharts();
-    });
-
-    window.onload = function () {
+    function initializeLab() {
+      window.addEventListener('resize', () => {
+        if (activeTab === 1) drawAgentCanvases();
+        else if (activeTab === 2) renderBenchmarkCharts();
+      });
       bindTab1IndependentSliders();
       attachCanvasClickRelocation();
       resetBothCanvasSimulations();
@@ -3245,7 +3309,19 @@
       updateInfraPreview();
       bindChartHoverTooltips();
       executeCloudBenchmark(1);
-    };
+    }
+
+    function revealLab(moveFocus = true) {
+      document.documentElement.classList.remove('has-cloud-intro');
+      window.scrollTo(0, 0);
+      if (moveFocus) {
+        document.getElementById('cloud-lab-title').focus({ preventScroll: true });
+      }
+      initializeLab();
+    }
+
+    if (typeof mountCloudIntro === 'function') mountCloudIntro(revealLab);
+    else revealLab(false);
   </script>
 </body>
 </html>
