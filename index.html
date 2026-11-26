@@ -89,6 +89,29 @@
       color: #18181B;
     }
 
+    .quiz-option:has(:where(input:checked)) {
+      border-color: #1D4ED8;
+      background-color: #EFF6FF;
+    }
+
+    .quiz-option:hover:has(:where(input:enabled)) {
+      border-color: #1D4ED8;
+    }
+
+    .quiz-option:has(input:disabled) {
+      cursor: default;
+    }
+
+    .quiz-option[data-answer="correct"] {
+      border-color: #15803D;
+      background-color: #F0FDF4;
+    }
+
+    .quiz-option[data-answer="incorrect"] {
+      border-color: #BE123C;
+      background-color: #FFF1F2;
+    }
+
     canvas {
       display: block;
       width: 100%;
@@ -143,19 +166,22 @@
           </h1>
         </div>
 
-        <!-- 3 Navigation Tabs -->
-        <nav class="flex flex-wrap sm:flex-nowrap gap-2 shrink-0" aria-label="Navigasi Utama">
-          <button id="tab-btn-1" onclick="switchTab(1)" class="tab-active flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+        <nav class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap" aria-label="Navigasi Utama">
+          <button type="button" id="tab-btn-1" onclick="switchTab(1)" aria-controls="tab-panel-1" aria-current="true" class="tab-active min-w-0 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
             <span class="font-mono text-xs opacity-75">01</span>
             <span>Visualisasi Lintasan Agen</span>
           </button>
-          <button id="tab-btn-2" onclick="switchTab(2)" class="tab-inactive flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+          <button type="button" id="tab-btn-2" onclick="switchTab(2)" aria-controls="tab-panel-2" class="tab-inactive min-w-0 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
             <span class="font-mono text-xs opacity-75">02</span>
             <span>Simulator & Uji Beban Cloud</span>
           </button>
-          <button id="tab-btn-3" onclick="switchTab(3)" class="tab-inactive flex-1 sm:flex-initial px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+          <button type="button" id="tab-btn-3" onclick="switchTab(3)" aria-controls="tab-panel-3" class="tab-inactive min-w-0 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
             <span class="font-mono text-xs opacity-75">03</span>
             <span>Bedah Matematis & Presentasi</span>
+          </button>
+          <button type="button" id="tab-btn-4" onclick="switchTab(4)" aria-controls="tab-panel-4" class="tab-inactive min-w-0 px-3.5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-2">
+            <span class="font-mono text-xs opacity-75">04</span>
+            <span>Kuis Penjadwalan Cloud</span>
           </button>
         </nav>
       </div>
@@ -1147,6 +1173,48 @@
 
     </section>
 
+    <!-- TAB 4: KUIS PENJADWALAN CLOUD -->
+    <section id="tab-panel-4" aria-labelledby="quiz-title" class="hidden">
+      <div class="editorial-card mx-auto max-w-3xl rounded-xl p-4 sm:p-7">
+        <h2 id="quiz-title" class="text-lg font-extrabold sm:text-xl">Kuis Penjadwalan Cloud</h2>
+
+        <form id="quiz-form" autocomplete="off" class="mt-5">
+          <div class="flex items-center gap-4">
+            <label id="quiz-progress-label" for="quiz-progress" class="shrink-0 font-mono text-xs font-semibold text-ink-muted"></label>
+            <progress id="quiz-progress" class="h-2 w-full accent-sasca" value="1"></progress>
+          </div>
+
+          <h3 id="quiz-question" tabindex="-1" class="mt-5 text-lg font-bold leading-snug"></h3>
+          <fieldset id="quiz-choices" aria-labelledby="quiz-question" class="mt-4 min-w-0 space-y-2"></fieldset>
+          <template id="quiz-option-template">
+            <label class="quiz-option flex cursor-pointer items-start gap-3 rounded-lg border border-paper-border px-4 py-3 text-sm leading-relaxed">
+              <input type="radio" name="quiz-answer" required class="mt-1 h-4 w-4 shrink-0 accent-sasca focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sasca" />
+              <span class="min-w-0">
+                <span class="quiz-option-text"></span>
+                <span class="quiz-option-status block font-semibold"></span>
+              </span>
+            </label>
+          </template>
+
+          <div id="quiz-feedback" role="status" aria-atomic="true">
+            <p id="quiz-verdict" class="font-bold"></p>
+            <p id="quiz-explanation"></p>
+          </div>
+          <button id="quiz-check" type="submit" disabled class="mt-5 cursor-pointer rounded-lg bg-ink-main px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 active:bg-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-ink-muted">
+            Periksa Jawaban
+          </button>
+          <button id="quiz-next" type="button" hidden class="mt-5 cursor-pointer rounded-lg bg-ink-main px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 active:bg-zinc-900"></button>
+        </form>
+
+        <div id="quiz-results" class="mt-5 border-t border-paper-border pt-5" hidden>
+          <h3 id="quiz-score" tabindex="-1" class="text-2xl font-extrabold"></h3>
+          <button id="quiz-restart" type="button" class="mt-5 cursor-pointer rounded-lg bg-ink-main px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 active:bg-zinc-900">
+            Ulangi Kuis
+          </button>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Editorial Footer -->
@@ -1165,17 +1233,19 @@
 
     function switchTab(tabNum) {
       activeTab = tabNum;
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 4; i++) {
         const panel = document.getElementById(`tab-panel-${i}`);
         const btn = document.getElementById(`tab-btn-${i}`);
         if (i === tabNum) {
           panel.classList.remove('hidden');
           btn.classList.remove('tab-inactive');
           btn.classList.add('tab-active');
+          btn.setAttribute('aria-current', 'true');
         } else {
           panel.classList.add('hidden');
           btn.classList.remove('tab-active');
           btn.classList.add('tab-inactive');
+          btn.removeAttribute('aria-current');
         }
       }
 
@@ -1185,6 +1255,156 @@
         renderBenchmarkCharts();
       }
     }
+
+    // TAB 4: KUIS PENJADWALAN CLOUD
+    const quizQuestions = [
+      {
+        prompt: 'Apa peran mutasi Differential Evolution (DE) pada DMFO-DE?',
+        options: [
+          'Menghitung waktu eksekusi setiap task',
+          'Menambah variasi kandidat jadwal selama pencarian',
+          'Menurunkan suhu pencarian pada setiap iterasi',
+          'Menambah kapasitas MIPS pada VM yang paling sibuk',
+        ],
+        correct: 1,
+        explanation: 'Mutasi DE menggunakan selisih vektor antaragen untuk membentuk kandidat baru. Variasi ini membantu pencarian menjelajahi lebih banyak pembagian task ke VM.',
+      },
+      {
+        prompt: 'Jika dua kandidat sama-sama menambah makespan sebesar 2 detik, kapan SA-SCA lebih mungkin menerima kandidat tersebut?',
+        options: [
+          'Saat suhu lebih rendah',
+          'Saat suhu mencapai nol',
+          'Peluangnya sama pada setiap suhu',
+          'Saat suhu lebih tinggi',
+        ],
+        correct: 3,
+        explanation: 'Untuk kenaikan makespan yang sama, suhu yang lebih tinggi meningkatkan peluang menerima kandidat tersebut. Langkah ini membantu pencarian keluar dari optimum lokal.',
+      },
+      {
+        prompt: 'Dengan suhu awal yang sama, apa yang terjadi jika cooling rate (α) diubah dari 0,95 menjadi 0,80?',
+        options: [
+          'Suhu turun lebih cepat',
+          'Suhu turun lebih lambat',
+          'Suhu naik di setiap iterasi',
+          'Suhu mengikuti pola pendinginan yang sama',
+        ],
+        correct: 0,
+        explanation: 'Setiap langkah pendinginan mengalikan suhu dengan α. Faktor 0,80 menyisakan 80% dari suhu sebelumnya, sehingga suhu turun lebih cepat dibandingkan dengan faktor 0,95.',
+      },
+      {
+        prompt: 'Sebuah task berukuran 6.000 MI dijalankan pada VM berkapasitas 2.000 MIPS. Berapa durasi eksekusinya?',
+        options: ['0,33 detik', '2 detik', '3 detik', '12 detik'],
+        correct: 2,
+        explanation: 'Durasi eksekusi dihitung dengan membagi ukuran task dengan kapasitas VM. Hasil 6.000 MI ÷ 2.000 MIPS adalah 3 detik.',
+      },
+      {
+        prompt: 'VM 1 memiliki total beban 3 detik dan VM 2 memiliki total beban 9 detik. Jika keduanya mulai bersamaan, berapa makespan jadwal ini?',
+        options: ['3 detik', '6 detik', '12 detik', '9 detik'],
+        correct: 3,
+        explanation: 'Makespan adalah waktu hingga seluruh task selesai. VM 2 selesai paling akhir, sehingga makespan adalah beban terbesar, yaitu 9 detik.',
+      },
+      {
+        prompt: 'VM 1 memiliki total beban 3 detik dan VM 2 memiliki total beban 9 detik. Jika makespan-nya 9 detik, berapa utilisasi rata-rata kedua VM?',
+        options: ['66,7%', '33,3%', '75%', '100%'],
+        correct: 0,
+        explanation: 'Beban rata-rata adalah (3 + 9) ÷ 2 = 6 detik. Utilisasi rata-rata diperoleh dari 6 ÷ 9 × 100%, yaitu sekitar 66,7%.',
+      },
+    ];
+
+    const quizForm = document.getElementById('quiz-form');
+    const quizChoices = document.getElementById('quiz-choices');
+    const quizQuestion = document.getElementById('quiz-question');
+    const quizOptionTemplate = document.getElementById('quiz-option-template');
+    const quizCheck = document.getElementById('quiz-check');
+    const quizNext = document.getElementById('quiz-next');
+    const quizFeedback = document.getElementById('quiz-feedback');
+    const quizVerdict = document.getElementById('quiz-verdict');
+    const quizExplanation = document.getElementById('quiz-explanation');
+    const quizResults = document.getElementById('quiz-results');
+    const quizScoreHeading = document.getElementById('quiz-score');
+    let quizIndex = 0;
+    let quizScore = 0;
+
+    function renderQuizQuestion() {
+      const question = quizQuestions[quizIndex];
+      document.getElementById('quiz-progress-label').textContent = `Soal ${quizIndex + 1} dari ${quizQuestions.length}`;
+      const progress = document.getElementById('quiz-progress');
+      progress.max = quizQuestions.length;
+      progress.value = quizIndex + 1;
+      quizQuestion.textContent = question.prompt;
+
+      quizChoices.replaceChildren(...question.options.map((option, index) => {
+        const choice = quizOptionTemplate.content.cloneNode(true);
+        choice.querySelector('input').value = index;
+        choice.querySelector('.quiz-option-text').textContent = option;
+        return choice;
+      }));
+      quizChoices.disabled = false;
+      quizCheck.hidden = false;
+      quizCheck.disabled = true;
+      quizNext.hidden = true;
+      quizFeedback.className = '';
+      quizVerdict.textContent = '';
+      quizExplanation.textContent = '';
+    }
+
+    quizChoices.addEventListener('change', () => {
+      quizCheck.disabled = !quizChoices.querySelector('input:checked');
+    });
+
+    quizForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const answer = quizChoices.querySelector('input:checked');
+      if (quizChoices.disabled || !answer) return;
+
+      quizChoices.disabled = true;
+      const question = quizQuestions[quizIndex];
+      const isCorrect = Number(answer.value) === question.correct;
+      if (isCorrect) quizScore++;
+
+      const correctChoice = quizChoices.children[question.correct];
+      correctChoice.dataset.answer = 'correct';
+      correctChoice.querySelector('.quiz-option-status').textContent = 'Jawaban benar';
+      if (!isCorrect) {
+        const selectedChoice = answer.closest('label');
+        selectedChoice.dataset.answer = 'incorrect';
+        selectedChoice.querySelector('.quiz-option-status').textContent = 'Pilihanmu';
+      }
+      quizFeedback.className = 'editorial-subcard mt-4 space-y-1 rounded-lg p-4 text-sm leading-relaxed';
+      quizVerdict.textContent = isCorrect ? 'Benar' : 'Salah';
+      quizExplanation.textContent = question.explanation;
+
+      quizCheck.disabled = true;
+      quizCheck.hidden = true;
+      quizNext.textContent = quizIndex + 1 === quizQuestions.length ? 'Lihat Hasil' : 'Soal Berikutnya';
+      quizNext.hidden = false;
+      quizNext.focus();
+    });
+
+    quizNext.addEventListener('click', () => {
+      if (quizIndex + 1 === quizQuestions.length) {
+        quizForm.hidden = true;
+        quizScoreHeading.textContent = `${quizScore} dari ${quizQuestions.length} benar`;
+        quizResults.hidden = false;
+        quizScoreHeading.focus();
+        return;
+      }
+
+      quizIndex++;
+      renderQuizQuestion();
+      quizQuestion.focus();
+    });
+
+    document.getElementById('quiz-restart').addEventListener('click', () => {
+      quizIndex = 0;
+      quizScore = 0;
+      renderQuizQuestion();
+      quizResults.hidden = true;
+      quizForm.hidden = false;
+      quizQuestion.focus();
+    });
+
+    renderQuizQuestion();
 
     // =========================================================================
     // 2. TAB 1: INDEPENDENT 2D AGENT TRAJECTORY LABS (DMFO-DE & SA-SCA)
