@@ -1061,7 +1061,7 @@
           Mengapa Menggabungkan Dua Metaheuristik untuk Cloud Task Scheduling?
         </h2>
         <p class="text-xs sm:text-sm text-[#52525B] mt-2 leading-relaxed">
-          Pada penjadwalan tugas komputasi awan heterogen dengan $D$ tugas dan $M$ mesin virtual, ruang solusi kombinatorial berukuran $M^D$ (untuk 100 tugas dan 8 VM terdapat $8^{100}$ kemungkinan jadwal). Algoritma metaheuristik tunggal sering mengalami ketimpangan antara <strong class="text-[#18181B]">eksplorasi global</strong> (mencari kombinasi jadwal baru) dan <strong class="text-[#18181B]">eksploitasi lokal</strong> (menyempurnakan distribusi beban VM yang sudah terbentuk).
+          Pada penjadwalan tugas komputasi awan heterogen dengan <var>D</var> tugas dan <var>M</var> mesin virtual, ruang solusi kombinatorial berukuran <var>M</var><sup>D</sup> (untuk 100 tugas dan 8 VM terdapat 8<sup>100</sup> kemungkinan jadwal). Algoritma metaheuristik tunggal sering mengalami ketimpangan antara <strong class="text-[#18181B]">eksplorasi global</strong> (mencari kombinasi jadwal baru) dan <strong class="text-[#18181B]">eksploitasi lokal</strong> (menyempurnakan distribusi beban VM yang sudah terbentuk).
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -1079,7 +1079,7 @@
               2. Mengatasi Konvergensi Prematur SCA dengan Simulated Annealing (SA-SCA)
             </h3>
             <p class="text-xs text-[#18181B] leading-relaxed">
-              Pada SCA kanonik, pembaruan seluruh dimensi secara serentak tanpa memori individu membuat agen rentan terjebak di optimum lokal saat amplitudo $r_1$ mengecil. Penggabungan dengan <span class="font-mono font-semibold text-[#BE123C]">Simulated Annealing (SA)</span> menambahkan kriteria penerimaan probabilistik <strong>Metropolis</strong> ($e^{-\Delta E / T}$): agen diizinkan melompat keluar dari lembah optimum lokal pada suhu tinggi, lalu melakukan pencarian lokal halus saat suhu mendingin.
+              Pada SCA kanonik, pembaruan seluruh dimensi secara serentak tanpa memori individu membuat agen rentan terjebak di optimum lokal saat amplitudo <var>r</var><sub>1</sub> mengecil. Penggabungan dengan <span class="font-mono font-semibold text-[#BE123C]">Simulated Annealing (SA)</span> menambahkan kriteria penerimaan probabilistik <strong>Metropolis</strong> (<var>e</var><sup>−ΔE / T</sup>): agen diizinkan melompat keluar dari lembah optimum lokal pada suhu tinggi, lalu melakukan pencarian lokal halus saat suhu mendingin.
             </p>
           </div>
         </div>
@@ -1102,7 +1102,7 @@
                 flameNo = round(N - t · ((N - 1) / T))
               </div>
               <p class="text-[#52525B] mt-1.5">
-                $D_i = |F_j - M_i|$ adalah jarak ngengat ke-$i$ terhadap target api $F_j$, $b$ konstanta bentuk spiral, dan $r \in [a, 1]$ ($a$ turun linear $-1 \to -2$).
+                D<sub>i</sub> = |F<sub>j</sub> − M<sub>i</sub>| adalah jarak ngengat ke-<var>i</var> terhadap target api <var>F</var><sub>j</sub>, <var>b</var> konstanta bentuk spiral, dan r ∈ [a, 1] (<var>a</var> turun linear −1 → −2).
               </p>
             </div>
 
@@ -1113,7 +1113,7 @@
                 U_{i,d} = V_{i,d}  jika (rand ≤ CR atau d == j_rand), else S_{i,d}
               </div>
               <p class="text-[#52525B] mt-1.5">
-                Faktor mutasi $F \in [0.1, 1.5]$ mengatur skala vektor selisih dari tiga agen acak berbeda ($r_1 \neq r_2 \neq r_3 \neq i$).
+                Faktor mutasi F ∈ [0.1, 1.5] mengatur skala vektor selisih dari tiga agen acak berbeda (r<sub>1</sub> ≠ r<sub>2</sub> ≠ r<sub>3</sub> ≠ i).
               </p>
             </div>
 
@@ -1142,7 +1142,7 @@
                 X_cand = X_i + r1 · cos(r2) · |r3·P - X_i|   (jika r4 ≥ 0.5)
               </div>
               <p class="text-[#52525B] mt-1.5">
-                Parameter $r_1 = a - t(a/T)$ mengecil linear dari $a \to 0$ untuk menggeser fase pencarian dari eksplorasi luas menuju eksploitasi lokal di sekitar $P$.
+                Parameter r<sub>1</sub> = a − t(a/T) mengecil linear dari a → 0 untuk menggeser fase pencarian dari eksplorasi luas menuju eksploitasi lokal di sekitar <var>P</var>.
               </p>
             </div>
 
@@ -1153,7 +1153,7 @@
                 P_accept = 1  jika ΔE ≤ 0,  else exp(-ΔE / T)
               </div>
               <p class="text-[#52525B] mt-1.5">
-                Solusi dengan beban lebih tinggi ($\Delta E > 0$) tetap berpeluang diterima jika bilangan acak $u &lt; e^{-\Delta E / T}$ guna meloloskan agen dari optimum lokal.
+                Solusi dengan beban lebih tinggi (ΔE &gt; 0) tetap berpeluang diterima jika bilangan acak u &lt; e<sup>−ΔE / T</sup> guna meloloskan agen dari optimum lokal.
               </p>
             </div>
 
@@ -1189,17 +1189,17 @@
               <tr>
                 <td class="py-3 px-4 font-bold">Mekanisme Eksplorasi</td>
                 <td class="py-3 px-4">Spiral logaritmik lebar + rekombinasi vektor selisih acak (<span class="font-mono text-[#B45309]">DE/rand/1</span>).</td>
-                <td class="py-3 px-4">Gelombang $\sin/\cos$ saat $r_1 > 1$ + lompatan <em>uphill</em> Metropolis saat suhu $T$ tinggi.</td>
+                <td class="py-3 px-4">Gelombang sin/cos saat r<sub>1</sub> &gt; 1 + lompatan <em>uphill</em> Metropolis saat suhu <var>T</var> tinggi.</td>
               </tr>
               <tr>
                 <td class="py-3 px-4 font-bold">Mekanisme Eksploitasi</td>
                 <td class="py-3 px-4">Arsip elitisme <em>Flames</em> terurut + seleksi <em>greedy</em> ketat + <em>discrete swap</em> antar-VM.</td>
-                <td class="py-3 px-4">Osilasi menyempit saat $r_1 \to 0$ + pendinginan suhu $T \to 0$ + penyempurnaan tetangga lokal.</td>
+                <td class="py-3 px-4">Osilasi menyempit saat r<sub>1</sub> → 0 + pendinginan suhu T → 0 + penyempurnaan tetangga lokal.</td>
               </tr>
               <tr>
                 <td class="py-3 px-4 font-bold">Stabilitas Konvergensi</td>
                 <td class="py-3 px-4">Monoton turun sangat stabil karena solusi terbaik selalu dipertahankan dalam arsip <em>Flames</em>.</td>
-                <td class="py-3 px-4">Eksploratif di paruh awal iterasi akibat penerimaan Metropolis, lalu konvergen saat $T$ rendah.</td>
+                <td class="py-3 px-4">Eksploratif di paruh awal iterasi akibat penerimaan Metropolis, lalu konvergen saat <var>T</var> rendah.</td>
               </tr>
               <tr>
                 <td class="py-3 px-4 font-bold">Model Daya Energi</td>
@@ -1227,7 +1227,7 @@
               "Apa peran suhu awal (T₀) dan cooling rate (α) pada SA-SCA dalam eksperimen ini?"
             </h4>
             <p class="text-xs text-[#52525B] mt-1.5 leading-relaxed">
-              Suhu awal $T_0$ menentukan seberapa berani agen SCA menerima jadwal yang sedikit lebih lambat di awal pencarian agar tidak terjebak di optimum lokal, sedangkan laju pendinginan $\alpha$ mengatur kecepatan transisi menuju fase eksploitasi. Jika $\alpha$ terlalu kecil (mis. 0.80), suhu turun terlalu cepat dan perilaku SA-SCA kembali menyerupai SCA biasa.
+              Suhu awal <var>T</var><sub>0</sub> menentukan seberapa berani agen SCA menerima jadwal yang sedikit lebih lambat di awal pencarian agar tidak terjebak di optimum lokal, sedangkan laju pendinginan α mengatur kecepatan transisi menuju fase eksploitasi. Jika α terlalu kecil (mis. 0.80), suhu turun terlalu cepat dan perilaku SA-SCA kembali menyerupai SCA biasa.
             </p>
           </div>
         </div>
